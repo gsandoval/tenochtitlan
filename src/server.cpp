@@ -7,9 +7,21 @@
 
 #include "socket/servertcpsocket.h"
 #include "management/applicationlifecyclelistener.h"
+#include "server/socketserver.h"
+#include "server/socketserverworkercreator.h"
+#include "server/rawsocketserverworker.h"
 
 using namespace std;
 using namespace tenochtitlan;
+
+class RawSocketServerWorkerCreator : public SocketServerWorkerCreator
+{
+public:
+	shared_ptr<SocketServerWorker> Create()
+	{
+		return make_shared<RawSocketServerWorker>();
+	}
+};
 
 int main(int argc, char *argv[])
 {
@@ -26,14 +38,21 @@ int main(int argc, char *argv[])
 
 	auto lifecycle_listener = ApplicationLifecycleListener::Instance();
 
-	auto server_socket = make_shared<ServerTcpSocket>();
+	auto master_socket = make_shared<ServerTcpSocket>();
+
+	auto server = make_shared<SocketServer>();
+	server->SetWorkerCreator(make_shared<RawSocketServerWorkerCreator>());
+	server->Start();
+	master_socket->SetConnectionHandler(server);
+
 	try {
-		server_socket->Listen("localhost", PORT);
+		master_socket->Listen("localhost", PORT);
 	} catch (exception& e) {
 		cout << e.what() << endl;
 	}
 
-	lifecycle_listener->AddToGlobalPool(server_socket);
+	lifecycle_listener->AddToGlobalPool(master_socket);
+	lifecycle_listener->AddToGlobalPool(server);
 
 	cin.ignore(numeric_limits<streamsize>::max());
 	cin.get();

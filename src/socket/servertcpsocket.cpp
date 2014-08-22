@@ -59,12 +59,10 @@ namespace tenochtitlan
 		    throw SocketException("Could not listen on socket");
 		}
 
-		auto that = this;
-		thread *t = new thread([&] {
-			that->StartListening();
+		thread t = thread([&] {
+			StartListening();
 		});
-		listening_thread = shared_ptr<thread>(t);
-		listening_thread->detach();
+		t.detach();
 	}
 
 	void ServerTcpSocket::StartListening()
@@ -116,12 +114,15 @@ namespace tenochtitlan
 				}
 			}
 		}
-		cout << "Stopping" << endl;
+		cout << "Stopping ServerTcpSocket" << endl;
 		stopped = true;
 	}
 
 	void ServerTcpSocket::StopListening()
 	{
+		if (!listening)
+			return;
+		
 		listening = false;
 		while (!stopped)
 			this_thread::sleep_for(chrono::milliseconds(100));
