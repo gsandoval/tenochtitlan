@@ -24,7 +24,7 @@ namespace tenochtitlan
 
 	ServerTcpSocket::~ServerTcpSocket()
 	{
-		StopListening();
+		Stop();
 	}
 
 	void ServerTcpSocket::SetConnectionHandler(
@@ -60,12 +60,12 @@ namespace tenochtitlan
 		}
 
 		thread t = thread([&] {
-			StartListening();
+			Run();
 		});
 		t.detach();
 	}
 
-	void ServerTcpSocket::StartListening()
+	void ServerTcpSocket::Run()
 	{
 		listening = true;
 		fd_set read_fds;
@@ -118,7 +118,7 @@ namespace tenochtitlan
 		stopped = true;
 	}
 
-	void ServerTcpSocket::StopListening()
+	void ServerTcpSocket::Stop()
 	{
 		if (!listening)
 			return;
@@ -130,6 +130,6 @@ namespace tenochtitlan
 
 	void ServerTcpSocket::Dispose()
 	{
-		StopListening();
+		Stop();
 	}
 }

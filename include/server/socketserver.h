@@ -2,10 +2,13 @@
 #define _SOCKET_SERVER_H_
 
 #include "socket/tcpclientconnectionhandler.h"
-
+#include "server/socketserverthread.h"
 #include "server/socketserverworkercreator.h"
 #include "management/disposable.h"
 #include <vector>
+#include <queue>
+#include <condition_variable>
+#include <mutex>
 
 namespace tenochtitlan
 {
@@ -14,11 +17,14 @@ namespace tenochtitlan
 	private:
 		bool processing;
 		bool stopped;
-		std::vector<std::shared_ptr<TcpClientConnection>> connections;
+		unsigned int max_worker_count;
+		std::queue<std::shared_ptr<TcpClientConnection>> connections;
 		std::shared_ptr<SocketServerWorkerCreator> creator;
+		std::vector<std::shared_ptr<SocketServerThread>> threads;
+		std::condition_variable processing_unit_cv;
+		std::mutex connections_mutex;
 
-		void StartProcessing();
-		void StopProcessing();
+		void Run();
 	public:
 		SocketServer();
 		~SocketServer();

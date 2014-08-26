@@ -22,8 +22,8 @@ namespace tenochtitlan
 		std::vector<std::shared_ptr<TcpClientConnection>> clients;
 		std::shared_ptr<TcpClientConnectionHandler> connection_handler;
 
-		void StartListening();
-		void StopListening();
+		void Run();
+		void Stop();
 	public:
 		ServerTcpSocket();
 		~ServerTcpSocket();

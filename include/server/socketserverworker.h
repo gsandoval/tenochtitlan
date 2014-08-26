@@ -9,7 +9,7 @@ namespace tenochtitlan
 	class SocketServerWorker
 	{
 	public:
-		virtual void ProcessRequest(std::shared_ptr<TcpClientConnection> client) = 0;
+		virtual void HandleClient(std::shared_ptr<TcpClientConnection> client) = 0;
 	};
 }
 

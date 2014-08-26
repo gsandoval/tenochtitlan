@@ -12,12 +12,14 @@ LIBS=-lm
 _DEPS = management/disposable.h management/applicationlifecyclelistener.h socket/socketexception.h \
 	socket/tcpsocket.h socket/servertcpsocket.h socket/clienttcpsocket.h socket/tcpclientconnection.h \
 	socket/tcpclientconnectionhandler.h server/socketserver.h server/socketserverworker.h \
-	server/httpsocketserverworker.h server/rawsocketserverworker.h server/socketserverworkercreator.h
+	server/httpsocketserverworker.h server/rawsocketserverworker.h server/socketserverworkercreator.h \
+	server/socketserverthread.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
 _OBJS = management/applicationlifecyclelistener.o socket/socketexception.o socket/tcpsocket.o \
 	socket/servertcpsocket.o socket/clienttcpsocket.o socket/tcpclientconnection.o server.o \
-	server/socketserver.o server/httpsocketserverworker.o server/rawsocketserverworker.o
+	server/socketserver.o server/httpsocketserverworker.o server/rawsocketserverworker.o \
+	server/socketserverthread.o
 OBJS = $(patsubst %,$(ODIR)/%,$(_OBJS))
 
 $(ODIR)/%.o: src/%.cpp $(DEPS)

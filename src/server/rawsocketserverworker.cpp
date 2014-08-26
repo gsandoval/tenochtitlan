@@ -4,7 +4,7 @@ namespace tenochtitlan
 {
 	using namespace std;
 
-	void RawSocketServerWorker::ProcessRequest(shared_ptr<TcpClientConnection> client)
+	void RawSocketServerWorker::HandleClient(shared_ptr<TcpClientConnection> client)
 	{
 
 	}

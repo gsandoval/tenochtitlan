@@ -8,6 +8,7 @@ namespace tenochtitlan
 {
 	class SocketServerWorkerCreator
 	{
+	public:
 		virtual std::shared_ptr<SocketServerWorker> Create() = 0;
 	};
 }
