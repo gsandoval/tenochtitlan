@@ -1,5 +1,5 @@
 #include "server/socketserverthread.h"
-
+#include <iostream>
 #include <thread>
 
 namespace tenochtitlan
@@ -21,6 +21,7 @@ namespace tenochtitlan
 	SocketServerThread::~SocketServerThread()
 	{
 		Stop();
+		cout << "~SocketServerThread" << endl;
 	}
 		
 	void SocketServerThread::Execute(shared_ptr<SocketServerWorker> worker)
@@ -52,17 +53,25 @@ namespace tenochtitlan
 	void SocketServerThread::Run()
 	{
 		running = true;
-		unique_lock<mutex> lk(idle_mutex);
+		unique_lock<mutex> lk(idle_mutex, defer_lock);
 		while (running) {
+			lk.lock();
+			cout << "before idle_thread" << endl;
 			idle_thread.wait(lk);
+			lk.unlock();
 			if (!running)
 				break;
 
 			executing = true;
+			cout << "before execute" << endl;
 			current_worker->Execute();
+			cout << "after execute" << endl;
 			executing = false;
 			
 			processing_unit_cv.notify_all();
+			cout << "after notifying execute finished" << endl;
+
+			current_worker = nullptr;
 		}
 
 		stopped = true;

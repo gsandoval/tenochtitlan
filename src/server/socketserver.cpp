@@ -16,6 +16,7 @@ namespace tenochtitlan
 	SocketServer::~SocketServer()
 	{
 		Stop();
+		cout << "~SocketServer" << endl;
 	}
 
 	void SocketServer::HandleNewConnection(shared_ptr<TcpClientConnection> connection)
@@ -69,14 +70,15 @@ namespace tenochtitlan
 	void SocketServer::Run()
 	{
 		processing = true;
-		unique_lock<mutex> lk(connections_mutex);
+		unique_lock<mutex> lk(connections_mutex, defer_lock);
 		while (processing) {
+			lk.lock();
 			processing_unit_cv.wait(lk);
 			if (!processing) {
 				lk.unlock();
 				break;
 			}
-
+			
 			while (!connections.empty()) {
 				shared_ptr<SocketServerThread> available_thread;
 				for (auto t : threads) {
@@ -100,6 +102,7 @@ namespace tenochtitlan
 					break;
 				}
 			}
+			lk.unlock();
 		}
 
 		cout << "Stopping SocketServer" << endl;

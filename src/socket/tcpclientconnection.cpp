@@ -1,12 +1,13 @@
 #include "socket/tcpclientconnection.h"
 #include "socket/socketexception.h"
-
+#include <iostream>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
 namespace tenochtitlan
 {
+	using namespace std;
 
 	TcpClientConnection::TcpClientConnection() : signaled(false), closed(false)
 	{
@@ -14,7 +15,7 @@ namespace tenochtitlan
 
 	TcpClientConnection::~TcpClientConnection()
 	{
-
+		cout << "~TcpClientConnection" << endl;
 	}
 
 	void TcpClientConnection::Open(int master_socket) {

@@ -8,6 +8,7 @@ namespace tenochtitlan
 	class RawSocketServerWorker : public SocketServerWorker
 	{
 	public:
+		~RawSocketServerWorker();
 		void Execute();
 	};
 }

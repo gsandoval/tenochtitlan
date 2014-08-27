@@ -25,6 +25,7 @@ namespace tenochtitlan
 	ServerTcpSocket::~ServerTcpSocket()
 	{
 		Stop();
+		cout << "~ServerTcpSocket" << endl;
 	}
 
 	void ServerTcpSocket::SetConnectionHandler(
@@ -71,30 +72,31 @@ namespace tenochtitlan
 		fd_set read_fds;
 		int fd_max;
 		struct timeval timeout;
-		timeout.tv_sec = 0;
-		timeout.tv_usec = 10000; // 10 milliseconds
 
-		vector<shared_ptr<TcpClientConnection>> to_delete;
+		vector<int> to_delete;
 		int fd;
 		while (listening) {
 			FD_ZERO(&read_fds);
 			FD_SET(master_socket, &read_fds);
 			fd_max = master_socket;
 
+			to_delete.erase(to_delete.begin(), to_delete.end());
 			for (unsigned int i = 0; i < clients.size(); i++) {
 				fd = clients[i]->FileDescriptor();
 				if (clients[i]->IsClosed()) {
-					to_delete.push_back(clients[i]);
+					to_delete.push_back(i);
 				} else if (fd > 0 && !clients[i]->IsSignaled()) {
 					FD_SET(fd, &read_fds);
 					if (fd > fd_max)
 						fd_max = fd;
 				}
 			}
-			for (auto client : to_delete) {
-				clients.erase(client);
+			for (int i = to_delete.size() - 1; i >= 0; i--) {
+				clients.erase(clients.begin() + to_delete[i]);
 			}
 			
+			timeout.tv_sec = 0;
+			timeout.tv_usec = 10000; // 10 milliseconds
 			if (select(fd_max + 1, &read_fds, NULL, NULL, &timeout) == -1) {
 				cout << "Exception" << endl;
 			    throw SocketException("Error on select");
