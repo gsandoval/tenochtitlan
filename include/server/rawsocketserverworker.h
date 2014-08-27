@@ -8,7 +8,7 @@ namespace tenochtitlan
 	class RawSocketServerWorker : public SocketServerWorker
 	{
 	public:
-		void HandleClient(std::shared_ptr<TcpClientConnection> client);
+		void Execute();
 	};
 }
 

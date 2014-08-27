@@ -19,8 +19,8 @@ namespace tenochtitlan
 
 	void TcpClientConnection::Open(int master_socket) {
 		struct sockaddr_in clientaddr;
-		int addrlen = sizeof(clientaddr);
-		socket_fd = accept(master_socket, (struct sockaddr *)&clientaddr, &addrlen);
+		socklen_t addrlen = sizeof(clientaddr);
+		socket_fd = ::accept(master_socket, (struct sockaddr *)&clientaddr, &addrlen);
 		if (socket_fd == -1)
 			throw SocketException("Could not accept connection");
 		//printf("New connection from %s on socket %d\n", inet_ntoa(clientaddr.sin_addr), socket_fd);

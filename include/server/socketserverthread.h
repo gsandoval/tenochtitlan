@@ -14,6 +14,9 @@ namespace tenochtitlan
 		bool stopped;
 		bool running;
 		std::condition_variable processing_unit_cv;
+		std::shared_ptr<SocketServerWorker> current_worker;
+		std::condition_variable idle_thread;
+		std::mutex idle_mutex;
 
 		void Run();
 	public:

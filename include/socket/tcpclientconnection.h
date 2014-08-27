@@ -10,7 +10,6 @@ namespace tenochtitlan
 	private:
 		bool signaled;
 		bool closed;
-		int error;
 		int socket_fd;
 	public:
 		TcpClientConnection();

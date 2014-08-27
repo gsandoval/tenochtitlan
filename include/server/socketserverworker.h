@@ -8,8 +8,11 @@ namespace tenochtitlan
 {
 	class SocketServerWorker
 	{
+	protected:
+		std::shared_ptr<TcpClientConnection> client;
 	public:
-		virtual void HandleClient(std::shared_ptr<TcpClientConnection> client) = 0;
+		void HandleClient(std::shared_ptr<TcpClientConnection> client);
+		virtual void Execute() = 0;
 	};
 }
 

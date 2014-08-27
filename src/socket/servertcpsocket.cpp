@@ -51,7 +51,7 @@ namespace tenochtitlan
 		serveraddr.sin_port = htons(port);
 		memset(&(serveraddr.sin_zero), '\0', 8);
 		 
-		if (bind(master_socket, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) == -1) {
+		if (::bind(master_socket, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) == -1) {
 		    throw SocketException("Could not bind address to socket");
 		}
 		 
@@ -74,6 +74,7 @@ namespace tenochtitlan
 		timeout.tv_sec = 0;
 		timeout.tv_usec = 10000; // 10 milliseconds
 
+		vector<shared_ptr<TcpClientConnection>> to_delete;
 		int fd;
 		while (listening) {
 			FD_ZERO(&read_fds);
@@ -83,12 +84,15 @@ namespace tenochtitlan
 			for (unsigned int i = 0; i < clients.size(); i++) {
 				fd = clients[i]->FileDescriptor();
 				if (clients[i]->IsClosed()) {
-					// TODO remove from clients collection
+					to_delete.push_back(clients[i]);
 				} else if (fd > 0 && !clients[i]->IsSignaled()) {
 					FD_SET(fd, &read_fds);
 					if (fd > fd_max)
 						fd_max = fd;
 				}
+			}
+			for (auto client : to_delete) {
+				clients.erase(client);
 			}
 			
 			if (select(fd_max + 1, &read_fds, NULL, NULL, &timeout) == -1) {

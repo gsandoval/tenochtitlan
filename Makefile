@@ -18,8 +18,8 @@ DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
 _OBJS = management/applicationlifecyclelistener.o socket/socketexception.o socket/tcpsocket.o \
 	socket/servertcpsocket.o socket/clienttcpsocket.o socket/tcpclientconnection.o server.o \
-	server/socketserver.o server/httpsocketserverworker.o server/rawsocketserverworker.o \
-	server/socketserverthread.o
+	server/socketserver.o server/socketserverworker.o server/httpsocketserverworker.o \
+	server/rawsocketserverworker.o server/socketserverthread.o
 OBJS = $(patsubst %,$(ODIR)/%,$(_OBJS))
 
 $(ODIR)/%.o: src/%.cpp $(DEPS)
