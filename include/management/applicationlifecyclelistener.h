@@ -8,22 +8,25 @@
 
 namespace tenochtitlan
 {
-	void ctrl_c_handler(int);
-
-	class ApplicationLifecycleListener
+	namespace management
 	{
-	private:
-		std::vector<std::shared_ptr<Disposable>> global_pool;
+		void ctrl_c_handler(int);
 
-		void Shutdown();
-	public:
-		ApplicationLifecycleListener();
-		static ApplicationLifecycleListener* Instance();
+		class ApplicationLifecycleListener
+		{
+		private:
+			std::vector<std::shared_ptr<Disposable>> global_pool;
 
-		void AddToGlobalPool(std::shared_ptr<Disposable> disposable);
+			void Shutdown();
+		public:
+			ApplicationLifecycleListener();
+			static ApplicationLifecycleListener* Instance();
 
-		friend void ctrl_c_handler(int);
-	};
+			void AddToGlobalPool(std::shared_ptr<Disposable> disposable);
+
+			friend void ctrl_c_handler(int);
+		};
+	}
 }
 
 #endif

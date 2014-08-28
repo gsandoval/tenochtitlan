@@ -5,23 +5,12 @@
 #include <chrono>
 #include <thread>
 
-#include "socket/servertcpsocket.h"
+#include "http/httpserver.h"
 #include "management/applicationlifecyclelistener.h"
-#include "server/socketserver.h"
-#include "server/socketserverworkercreator.h"
-#include "server/rawsocketserverworker.h"
 
 using namespace std;
-using namespace tenochtitlan;
-
-class RawSocketServerWorkerCreator : public SocketServerWorkerCreator
-{
-public:
-	shared_ptr<SocketServerWorker> Create()
-	{
-		return make_shared<RawSocketServerWorker>();
-	}
-};
+using namespace tenochtitlan::http;
+using namespace tenochtitlan::management;
 
 int main(int argc, char *argv[])
 {
@@ -36,23 +25,16 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
+	auto http_server = make_shared<HttpServer>();
+
 	auto lifecycle_listener = ApplicationLifecycleListener::Instance();
-
-	auto master_socket = make_shared<ServerTcpSocket>();
-
-	auto server = make_shared<SocketServer>();
-	server->SetWorkerCreator(make_shared<RawSocketServerWorkerCreator>());
-	server->Start();
-	master_socket->SetConnectionHandler(server);
-
+	lifecycle_listener->AddToGlobalPool(http_server);
+	
 	try {
-		master_socket->Listen("localhost", PORT);
+		http_server->Listen("localhost", PORT);
 	} catch (exception& e) {
 		cout << e.what() << endl;
 	}
-
-	lifecycle_listener->AddToGlobalPool(master_socket);
-	lifecycle_listener->AddToGlobalPool(server);
 
 	cin.ignore(numeric_limits<streamsize>::max());
 	cin.get();

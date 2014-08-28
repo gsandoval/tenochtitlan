@@ -13,25 +13,28 @@
 
 namespace tenochtitlan
 {
-	class ServerTcpSocket : public TcpSocket, public Disposable
+	namespace socket
 	{
-	private:
-		bool listening;
-		bool stopped;
-		int master_socket;
-		std::vector<std::shared_ptr<TcpClientConnection>> clients;
-		std::shared_ptr<TcpClientConnectionHandler> connection_handler;
+		class ServerTcpSocket : public TcpSocket, public management::Disposable
+		{
+		private:
+			bool listening;
+			bool stopped;
+			int master_socket;
+			std::vector<std::shared_ptr<TcpClientConnection>> clients;
+			std::shared_ptr<TcpClientConnectionHandler> connection_handler;
 
-		void Run();
-		void Stop();
-	public:
-		ServerTcpSocket();
-		~ServerTcpSocket();
+			void Run();
+			void Stop();
+		public:
+			ServerTcpSocket();
+			~ServerTcpSocket();
 
-		void SetConnectionHandler(std::shared_ptr<TcpClientConnectionHandler> connection_handler);
-		void Listen(std::string address, int port);
-		void Dispose();
-	};
+			void SetConnectionHandler(std::shared_ptr<TcpClientConnectionHandler> connection_handler);
+			void Listen(std::string address, int port);
+			void Dispose();
+		};
+	}
 }
 
 #endif

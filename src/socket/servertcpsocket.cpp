@@ -15,127 +15,130 @@
 
 namespace tenochtitlan
 {
-	using namespace std;
-
-	ServerTcpSocket::ServerTcpSocket() : listening(false), stopped(false)
+	namespace socket
 	{
+		using namespace std;
 
-	}
+		ServerTcpSocket::ServerTcpSocket() : listening(false), stopped(false)
+		{
 
-	ServerTcpSocket::~ServerTcpSocket()
-	{
-		Stop();
-		cout << "~ServerTcpSocket" << endl;
-	}
-
-	void ServerTcpSocket::SetConnectionHandler(
-		shared_ptr<TcpClientConnectionHandler> connection_handler)
-	{
-		this->connection_handler = connection_handler;
-	}
-
-	void ServerTcpSocket::Listen(string address, int port)
-	{
-		struct sockaddr_in serveraddr;
-		 
-		if ((master_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-			throw SocketException("Could not create socket");
-		}
-		
-		int yes = 1;
-		if (setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1) {
-			throw SocketException("Could not set socket options");
-		}
-		
-		serveraddr.sin_family = AF_INET;
-		serveraddr.sin_addr.s_addr = INADDR_ANY;
-		serveraddr.sin_port = htons(port);
-		memset(&(serveraddr.sin_zero), '\0', 8);
-		 
-		if (::bind(master_socket, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) == -1) {
-		    throw SocketException("Could not bind address to socket");
-		}
-		 
-		if (listen(master_socket, 10) == -1) {
-		    throw SocketException("Could not listen on socket");
 		}
 
-		thread t = thread([&] {
-			Run();
-		});
-		t.detach();
-	}
+		ServerTcpSocket::~ServerTcpSocket()
+		{
+			Stop();
+			cout << "~ServerTcpSocket" << endl;
+		}
 
-	void ServerTcpSocket::Run()
-	{
-		listening = true;
-		fd_set read_fds;
-		int fd_max;
-		struct timeval timeout;
+		void ServerTcpSocket::SetConnectionHandler(
+			shared_ptr<TcpClientConnectionHandler> connection_handler)
+		{
+			this->connection_handler = connection_handler;
+		}
 
-		vector<int> to_delete;
-		int fd;
-		while (listening) {
-			FD_ZERO(&read_fds);
-			FD_SET(master_socket, &read_fds);
-			fd_max = master_socket;
-
-			to_delete.erase(to_delete.begin(), to_delete.end());
-			for (unsigned int i = 0; i < clients.size(); i++) {
-				fd = clients[i]->FileDescriptor();
-				if (clients[i]->IsClosed()) {
-					to_delete.push_back(i);
-				} else if (fd > 0 && !clients[i]->IsSignaled()) {
-					FD_SET(fd, &read_fds);
-					if (fd > fd_max)
-						fd_max = fd;
-				}
-			}
-			for (int i = to_delete.size() - 1; i >= 0; i--) {
-				clients.erase(clients.begin() + to_delete[i]);
+		void ServerTcpSocket::Listen(string address, int port)
+		{
+			struct sockaddr_in serveraddr;
+			 
+			if ((master_socket = ::socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+				throw SocketException("Could not create socket");
 			}
 			
-			timeout.tv_sec = 0;
-			timeout.tv_usec = 10000; // 10 milliseconds
-			if (select(fd_max + 1, &read_fds, NULL, NULL, &timeout) == -1) {
-				cout << "Exception" << endl;
-			    throw SocketException("Error on select");
+			int yes = 1;
+			if (setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1) {
+				throw SocketException("Could not set socket options");
+			}
+			
+			serveraddr.sin_family = AF_INET;
+			serveraddr.sin_addr.s_addr = INADDR_ANY;
+			serveraddr.sin_port = htons(port);
+			memset(&(serveraddr.sin_zero), '\0', 8);
+			 
+			if (::bind(master_socket, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) == -1) {
+			    throw SocketException("Could not bind address to socket");
+			}
+			 
+			if (listen(master_socket, 10) == -1) {
+			    throw SocketException("Could not listen on socket");
 			}
 
-			if (FD_ISSET(master_socket, &read_fds)) {
-				cout << "new connection" << endl;
-				auto client = make_shared<TcpClientConnection>();
-				clients.push_back(client);
-				client->Open(master_socket);
-
-				if (connection_handler) {
-					connection_handler->HandleNewConnection(client);
-				}
-			}
-
-			for (unsigned int i = 0; i < clients.size(); i++) {
-				if (FD_ISSET(clients[i]->FileDescriptor(), &read_fds)) {
-					cout << "something" << endl;
-					clients[i]->SignalEvent();
-				}
-			}
+			thread t = thread([&] {
+				Run();
+			});
+			t.detach();
 		}
-		cout << "Stopping ServerTcpSocket" << endl;
-		stopped = true;
-	}
 
-	void ServerTcpSocket::Stop()
-	{
-		if (!listening)
-			return;
-		
-		listening = false;
-		while (!stopped)
-			this_thread::sleep_for(chrono::milliseconds(100));
-	}
+		void ServerTcpSocket::Run()
+		{
+			listening = true;
+			fd_set read_fds;
+			int fd_max;
+			struct timeval timeout;
 
-	void ServerTcpSocket::Dispose()
-	{
-		Stop();
+			vector<int> to_delete;
+			int fd;
+			while (listening) {
+				FD_ZERO(&read_fds);
+				FD_SET(master_socket, &read_fds);
+				fd_max = master_socket;
+
+				to_delete.erase(to_delete.begin(), to_delete.end());
+				for (unsigned int i = 0; i < clients.size(); i++) {
+					fd = clients[i]->FileDescriptor();
+					if (clients[i]->IsClosed()) {
+						to_delete.push_back(i);
+					} else if (fd > 0 && !clients[i]->IsSignaled()) {
+						FD_SET(fd, &read_fds);
+						if (fd > fd_max)
+							fd_max = fd;
+					}
+				}
+				for (int i = to_delete.size() - 1; i >= 0; i--) {
+					clients.erase(clients.begin() + to_delete[i]);
+				}
+				
+				timeout.tv_sec = 0;
+				timeout.tv_usec = 10000; // 10 milliseconds
+				if (select(fd_max + 1, &read_fds, NULL, NULL, &timeout) == -1) {
+					cout << "Exception" << endl;
+				    throw SocketException("Error on select");
+				}
+
+				if (FD_ISSET(master_socket, &read_fds)) {
+					cout << "new connection" << endl;
+					auto client = make_shared<TcpClientConnection>();
+					clients.push_back(client);
+					client->Open(master_socket);
+
+					if (connection_handler) {
+						connection_handler->HandleNewConnection(client);
+					}
+				}
+
+				for (unsigned int i = 0; i < clients.size(); i++) {
+					if (FD_ISSET(clients[i]->FileDescriptor(), &read_fds)) {
+						cout << "something" << endl;
+						clients[i]->SignalEvent();
+					}
+				}
+			}
+			cout << "Stopping ServerTcpSocket" << endl;
+			stopped = true;
+		}
+
+		void ServerTcpSocket::Stop()
+		{
+			if (!listening)
+				return;
+			
+			listening = false;
+			while (!stopped)
+				this_thread::sleep_for(chrono::milliseconds(100));
+		}
+
+		void ServerTcpSocket::Dispose()
+		{
+			Stop();
+		}
 	}
 }

@@ -3,11 +3,14 @@
 
 namespace tenochtitlan
 {
-	class TcpSocket
+	namespace socket
 	{
-	public:
-		virtual ~TcpSocket();
-	};
+		class TcpSocket
+		{
+		public:
+			virtual ~TcpSocket();
+		};
+	}
 }
 
 #endif

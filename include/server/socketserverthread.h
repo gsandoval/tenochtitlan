@@ -7,29 +7,32 @@
 
 namespace tenochtitlan
 {
-	class SocketServerThread
+	namespace server
 	{
-	private:
-		bool executing;
-		bool stopped;
-		bool running;
-		std::condition_variable processing_unit_cv;
-		std::shared_ptr<SocketServerWorker> current_worker;
-		std::condition_variable idle_thread;
-		std::mutex idle_mutex;
+		class SocketServerThread
+		{
+		private:
+			bool executing;
+			bool stopped;
+			bool running;
+			std::condition_variable processing_unit_cv;
+			std::shared_ptr<SocketServerWorker> current_worker;
+			std::condition_variable idle_thread;
+			std::mutex idle_mutex;
 
-		void Run();
-	public:
-		SocketServerThread();
-		SocketServerThread(std::condition_variable& processing_unit_cv);
-		~SocketServerThread();
-		
-		void Execute(std::shared_ptr<SocketServerWorker> worker);
-		void Start();
-		void Stop();
-		bool IsStopped();
-		bool IsExecuting();
-	};
+			void Run();
+		public:
+			SocketServerThread();
+			SocketServerThread(std::condition_variable& processing_unit_cv);
+			~SocketServerThread();
+			
+			void Execute(std::shared_ptr<SocketServerWorker> worker);
+			void Start();
+			void Stop();
+			bool IsStopped();
+			bool IsExecuting();
+		};
+	}
 }
 
 #endif

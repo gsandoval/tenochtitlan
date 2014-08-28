@@ -5,10 +5,13 @@
 
 namespace tenochtitlan
 {
-	class ClientTcpSocket : TcpSocket
+	namespace socket
 	{
+		class ClientTcpSocket : TcpSocket
+		{
 
-	};
+		};
+	}
 }
 
 #endif

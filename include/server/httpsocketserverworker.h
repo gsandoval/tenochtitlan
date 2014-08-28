@@ -2,14 +2,22 @@
 #define _HTTP_SOCKET_SERVER_WORKER_H_
 
 #include "server/socketserverworker.h"
+#include "http/httprequestprocessor.h"
 
 namespace tenochtitlan
 {
-	class HttpSocketServerWorker : public SocketServerWorker
+	namespace server
 	{
-	public:
-		void Execute();
-	};
+		class HttpSocketServerWorker : public SocketServerWorker
+		{
+		private:
+			std::shared_ptr<http::HttpRequestProcessor> request_processor;
+		public:
+			void Execute();
+
+			void SetRequestProcessor(std::shared_ptr<http::HttpRequestProcessor> processor);
+		};
+	}
 }
 
 #endif

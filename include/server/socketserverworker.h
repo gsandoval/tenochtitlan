@@ -6,14 +6,17 @@
 
 namespace tenochtitlan
 {
-	class SocketServerWorker
+	namespace server
 	{
-	protected:
-		std::shared_ptr<TcpClientConnection> client;
-	public:
-		void HandleClient(std::shared_ptr<TcpClientConnection> client);
-		virtual void Execute() = 0;
-	};
+		class SocketServerWorker
+		{
+		protected:
+			std::shared_ptr<socket::TcpClientConnection> client;
+		public:
+			void HandleClient(std::shared_ptr<socket::TcpClientConnection> client);
+			virtual void Execute() = 0;
+		};
+	}
 }
 
 #endif

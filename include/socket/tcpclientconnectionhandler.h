@@ -7,13 +7,14 @@
 
 namespace tenochtitlan
 {
-
-	class TcpClientConnectionHandler
+	namespace socket
 	{
-	public:
-		virtual void HandleNewConnection(std::shared_ptr<TcpClientConnection> connection) = 0;
-	};
-
+		class TcpClientConnectionHandler
+		{
+		public:
+			virtual void HandleNewConnection(std::shared_ptr<TcpClientConnection> connection) = 0;
+		};
+	}
 }
 
 #endif

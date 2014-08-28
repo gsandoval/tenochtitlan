@@ -6,18 +6,19 @@
 
 namespace tenochtitlan
 {
-
-	class SocketException : public std::exception
+	namespace socket
 	{
-	private:
-		std::string message;
-	public:
-		SocketException();
-		SocketException(std::string msg);
+		class SocketException : public std::exception
+		{
+		private:
+			std::string message;
+		public:
+			SocketException();
+			SocketException(std::string msg);
 
-		virtual const char* what() const throw();
-	};
-
+			virtual const char* what() const throw();
+		};
+	}
 }
 
 #endif

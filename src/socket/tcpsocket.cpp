@@ -3,10 +3,13 @@
 
 namespace tenochtitlan
 {
-	using namespace std;
-
-	TcpSocket::~TcpSocket()
+	namespace socket
 	{
-		cout << "~TcpSocket" << endl;
+		using namespace std;
+
+		TcpSocket::~TcpSocket()
+		{
+			cout << "~TcpSocket" << endl;
+		}
 	}
 }

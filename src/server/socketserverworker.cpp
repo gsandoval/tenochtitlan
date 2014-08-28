@@ -2,10 +2,13 @@
 
 namespace tenochtitlan
 {
-	using namespace std;
-
-	void SocketServerWorker::HandleClient(shared_ptr<TcpClientConnection> client)
+	namespace server
 	{
-		this->client = client;
+		using namespace std;
+
+		void SocketServerWorker::HandleClient(shared_ptr<socket::TcpClientConnection> client)
+		{
+			this->client = client;
+		}
 	}
 }

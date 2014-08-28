@@ -3,19 +3,22 @@
 
 namespace tenochtitlan
 {
-	using namespace std;
-
-	RawSocketServerWorker::~RawSocketServerWorker()
+	namespace server
 	{
-		cout << "~RawSocketServerWorker" << endl;
-	}
+		using namespace std;
 
-	void RawSocketServerWorker::Execute()
-	{
-		char buffer[1024];
-		int bytes_read = client->Read(buffer, 1024);
-		cout << "buffer content " << buffer << endl << flush;
-		client->Write(buffer, bytes_read);
-		client->Close();
+		RawSocketServerWorker::~RawSocketServerWorker()
+		{
+			cout << "~RawSocketServerWorker" << endl;
+		}
+
+		void RawSocketServerWorker::Execute()
+		{
+			char buffer[1024];
+			int bytes_read = client->Read(buffer, 1024);
+			cout << "buffer content " << buffer << endl << flush;
+			client->Write(buffer, bytes_read);
+			client->Close();
+		}
 	}
 }

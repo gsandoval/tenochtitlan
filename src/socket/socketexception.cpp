@@ -2,20 +2,23 @@
 
 namespace tenochtitlan
 {
-	using namespace std;
-
-	SocketException::SocketException()
+	namespace socket
 	{
+		using namespace std;
 
-	}
+		SocketException::SocketException()
+		{
 
-	SocketException::SocketException(string message) : message(message)
-	{
+		}
 
-	}
+		SocketException::SocketException(string message) : message(message)
+		{
 
-	const char* SocketException::what() const throw()
-	{
-		return message.c_str();
+		}
+
+		const char* SocketException::what() const throw()
+		{
+			return message.c_str();
+		}
 	}
 }

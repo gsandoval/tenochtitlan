@@ -5,12 +5,15 @@
 
 namespace tenochtitlan
 {
-	class RawSocketServerWorker : public SocketServerWorker
+	namespace server
 	{
-	public:
-		~RawSocketServerWorker();
-		void Execute();
-	};
+		class RawSocketServerWorker : public SocketServerWorker
+		{
+		public:
+			~RawSocketServerWorker();
+			void Execute();
+		};
+	}
 }
 
 #endif

@@ -3,11 +3,14 @@
 
 namespace tenochtitlan
 {
-	class Disposable
+	namespace management
 	{
-	public:
-		virtual void Dispose() = 0;
-	};
+		class Disposable
+		{
+		public:
+			virtual void Dispose() = 0;
+		};
+	}
 }
 
 #endif
