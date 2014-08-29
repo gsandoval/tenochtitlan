@@ -4,6 +4,8 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
 
 namespace tenochtitlan
 {
@@ -11,7 +13,7 @@ namespace tenochtitlan
 	{
 		using namespace std;
 
-		TcpClientConnection::TcpClientConnection() : signaled(false), closed(false)
+		TcpClientConnection::TcpClientConnection() : closed(false)
 		{
 		}
 
@@ -27,27 +29,29 @@ namespace tenochtitlan
 			if (socket_fd == -1)
 				throw SocketException("Could not accept connection");
 			//printf("New connection from %s on socket %d\n", inet_ntoa(clientaddr.sin_addr), socket_fd);
+
+			fcntl(socket_fd, F_SETFL, fcntl(socket_fd, F_GETFL, 0) | O_NONBLOCK); 
+            io.set<TcpClientConnection, &TcpClientConnection::SignalEvent>(this);
+
+            io.start(socket_fd, ev::READ);
 		}
 
 		void TcpClientConnection::Close()
 		{
 			closed = true;
+			io.stop();
 			close(socket_fd);
 		}
 
 		int TcpClientConnection::Read(char* buf, int buffer_size, int timeout)
 		{
-			struct timeval tv;
-			tv.tv_sec = timeout / 1000;
-			tv.tv_usec = (timeout % 1000) * 1000;
-			setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(struct timeval));
-
 			int bytes_read = recv(socket_fd, buf, buffer_size, 0);
+			cout << "bytes read: " << bytes_read << ", errno" << errno << endl;;
 			if (bytes_read <= 0) {
-				Close();
-
-				if (bytes_read < 0)
+				if (bytes_read < 0) {
+					Close();
 					throw SocketException("An error occurred when reading");
+				}
 			}
 			return bytes_read;
 		}
@@ -59,14 +63,21 @@ namespace tenochtitlan
 				throw SocketException("Error writing buffer to client");
 		}
 
-		void TcpClientConnection::SignalEvent()
+		void TcpClientConnection::SignalEvent(ev::io &watcher, int revents)
 		{
-			signaled = true;
-		}
+			/*
+			if (revents & EV_READ) 
+                read_cb(watcher);
 
-		bool TcpClientConnection::IsSignaled()
-		{
-			return signaled;
+            if (revents & EV_WRITE) 
+                write_cb(watcher);
+
+            if (write_queue.empty()) {
+                io.set(ev::READ);
+            } else {
+                io.set(ev::READ|ev::WRITE);
+            }
+            */
 		}
 
 		bool TcpClientConnection::IsClosed()

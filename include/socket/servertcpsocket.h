@@ -6,6 +6,8 @@
 #include "tcpclientconnectionhandler.h"
 #include "management/disposable.h"
 
+#include <ev++.h>
+
 #include <string>
 #include <vector>
 #include <memory>
@@ -18,6 +20,8 @@ namespace tenochtitlan
 		class ServerTcpSocket : public TcpSocket, public management::Disposable
 		{
 		private:
+			ev::io io;
+			ev::default_loop loop;
 			bool listening;
 			bool stopped;
 			int master_socket;
@@ -33,6 +37,8 @@ namespace tenochtitlan
 			void SetConnectionHandler(std::shared_ptr<TcpClientConnectionHandler> connection_handler);
 			void Listen(std::string address, int port);
 			void Dispose();
+
+			void Accept(ev::io &watcher, int revents);
 		};
 	}
 }

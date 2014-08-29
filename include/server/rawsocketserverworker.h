@@ -12,6 +12,8 @@ namespace tenochtitlan
 		public:
 			~RawSocketServerWorker();
 			void Execute();
+			void ReadReady();
+			void WriteReady();
 		};
 	}
 }

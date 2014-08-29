@@ -2,6 +2,8 @@
 #ifndef _TCP_CLIENT_CONNECTION_H_
 #define _TCP_CLIENT_CONNECTION_H_
 
+#include <ev++.h>
+
 namespace tenochtitlan
 {
 	namespace socket
@@ -9,9 +11,9 @@ namespace tenochtitlan
 		class TcpClientConnection
 		{
 		private:
-			bool signaled;
 			bool closed;
 			int socket_fd;
+			ev::io io;
 		public:
 			TcpClientConnection();
 			~TcpClientConnection();
@@ -21,8 +23,7 @@ namespace tenochtitlan
 			void Close();
 			int Read(char* buf, int buffer_size, int timeout = 0);
 			void Write(char *buf, int buffer_size);
-			bool IsSignaled();
-			void SignalEvent();
+			void SignalEvent(ev::io &watcher, int revents);
 			bool IsClosed();
 		};
 	}

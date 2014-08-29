@@ -14,6 +14,8 @@ namespace tenochtitlan
 			std::shared_ptr<http::HttpRequestProcessor> request_processor;
 		public:
 			void Execute();
+			void ReadReady();
+			void WriteReady();
 
 			void SetRequestProcessor(std::shared_ptr<http::HttpRequestProcessor> processor);
 		};
