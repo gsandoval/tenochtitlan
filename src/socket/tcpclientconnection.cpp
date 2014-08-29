@@ -40,7 +40,7 @@ namespace tenochtitlan
 			struct timeval tv;
 			tv.tv_sec = timeout / 1000;
 			tv.tv_usec = (timeout % 1000) * 1000;
-			setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
+			setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(struct timeval));
 
 			int bytes_read = recv(socket_fd, buf, buffer_size, 0);
 			if (bytes_read <= 0) {
@@ -56,7 +56,7 @@ namespace tenochtitlan
 		{
 			int bytes_sent = send(socket_fd, buf, buffer_size, 0);
 			if (bytes_sent == -1)
-				throw SocketException("Error wrinting buffer to client");
+				throw SocketException("Error writing buffer to client");
 		}
 
 		void TcpClientConnection::SignalEvent()

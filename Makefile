@@ -21,7 +21,7 @@ _OBJS = management/applicationlifecyclelistener.o socket/socketexception.o socke
 	socket/servertcpsocket.o socket/clienttcpsocket.o socket/tcpclientconnection.o server.o \
 	server/socketserver.o server/socketserverworker.o server/httpsocketserverworker.o \
 	server/rawsocketserverworker.o server/socketserverthread.o parser/jsonparser.o parser/httpparser.o \
-	http/httpserver.o http/httpentity.o http/httpsocketserverworkercreator.o
+	http/httpserver.o http/httprequestprocessor.o http/httpentity.o http/httpsocketserverworkercreator.o
 OBJS = $(patsubst %,$(ODIR)/%,$(_OBJS))
 
 $(ODIR)/%.o: src/%.cpp $(DEPS)

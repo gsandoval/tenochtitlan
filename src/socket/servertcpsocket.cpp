@@ -100,8 +100,8 @@ namespace tenochtitlan
 				timeout.tv_sec = 0;
 				timeout.tv_usec = 10000; // 10 milliseconds
 				if (select(fd_max + 1, &read_fds, NULL, NULL, &timeout) == -1) {
-					cout << "Exception" << endl;
-				    throw SocketException("Error on select");
+					cout << "Exception: " << errno <<  endl;
+				    throw SocketException("Error on select", errno);
 				}
 
 				if (FD_ISSET(master_socket, &read_fds)) {

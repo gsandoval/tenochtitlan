@@ -8,7 +8,7 @@ namespace tenochtitlan
 
 		shared_ptr<HttpEntity> HttpRequestProcessor::ProcessRequest(shared_ptr<HttpEntity> req)
 		{
-
+			return make_shared<HttpEntity>();
 		}
 	}
 }

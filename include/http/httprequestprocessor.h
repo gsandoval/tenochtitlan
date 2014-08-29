@@ -2,6 +2,7 @@
 #define _HTTP_REQUEST_PROCESSOR_H_
 
 #include "httpentity.h"
+#include <memory>
 
 namespace tenochtitlan
 {

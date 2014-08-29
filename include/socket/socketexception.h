@@ -12,9 +12,11 @@ namespace tenochtitlan
 		{
 		private:
 			std::string message;
+			int error_number;
 		public:
 			SocketException();
 			SocketException(std::string msg);
+			SocketException(std::string msg, int error_number);
 
 			virtual const char* what() const throw();
 		};
