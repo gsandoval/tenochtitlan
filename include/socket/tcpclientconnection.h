@@ -21,7 +21,7 @@ namespace tenochtitlan
 			int FileDescriptor();
 			void Open(int master_socket);
 			void Close();
-			int Read(char* buf, int buffer_size, int timeout = 0);
+			int Read(char* buf, int buffer_size);
 			void Write(char *buf, int buffer_size);
 			void SignalEvent(ev::io &watcher, int revents);
 			bool IsClosed();

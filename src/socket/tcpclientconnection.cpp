@@ -30,6 +30,7 @@ namespace tenochtitlan
 				throw SocketException("Could not accept connection");
 			//printf("New connection from %s on socket %d\n", inet_ntoa(clientaddr.sin_addr), socket_fd);
 
+			cout << "socket_fd" << socket_fd << endl;
 			fcntl(socket_fd, F_SETFL, fcntl(socket_fd, F_GETFL, 0) | O_NONBLOCK); 
             io.set<TcpClientConnection, &TcpClientConnection::SignalEvent>(this);
 
@@ -43,13 +44,17 @@ namespace tenochtitlan
 			close(socket_fd);
 		}
 
-		int TcpClientConnection::Read(char* buf, int buffer_size, int timeout)
+		int TcpClientConnection::Read(char* buf, int buffer_size)
 		{
 			int bytes_read = recv(socket_fd, buf, buffer_size, 0);
-			cout << "bytes read: " << bytes_read << ", errno" << errno << endl;;
 			if (bytes_read <= 0) {
-				if (bytes_read < 0) {
+				if (bytes_read == 0) {
 					Close();
+				}
+				if (errno == EAGAIN) {
+					bytes_read = 0;
+				}
+				if (bytes_read < 0) {
 					throw SocketException("An error occurred when reading");
 				}
 			}

@@ -25,7 +25,6 @@ namespace tenochtitlan
 			bool listening;
 			bool stopped;
 			int master_socket;
-			std::vector<std::shared_ptr<TcpClientConnection>> clients;
 			std::shared_ptr<TcpClientConnectionHandler> connection_handler;
 
 			void Run();

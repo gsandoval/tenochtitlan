@@ -71,9 +71,12 @@ namespace tenochtitlan
 		}
 
 		void ServerTcpSocket::Accept(ev::io &watcher, int revents) {
-            cout << "new connection" << endl;
+			if (EV_ERROR & revents) {
+				cout << "An error occurred accepting a connection" << endl;
+				return;
+			}
+
 			auto client = make_shared<TcpClientConnection>();
-			clients.push_back(client);
 			client->Open(watcher.fd); // master_socket
 
 			if (connection_handler) {
@@ -83,9 +86,9 @@ namespace tenochtitlan
 
 		void ServerTcpSocket::Dispose()
 		{
-			loop.break_loop();
 			shutdown(master_socket, SHUT_RDWR);
 			close(master_socket);
+			loop.break_loop();
 		}
 	}
 }

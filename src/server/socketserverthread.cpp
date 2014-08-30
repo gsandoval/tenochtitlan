@@ -30,6 +30,7 @@ namespace tenochtitlan
 		{
 			current_worker = worker;
 			idle_thread.notify_all();
+			cout << "notify idle thread" << endl;
 		}
 
 		void SocketServerThread::Start()
@@ -57,10 +58,12 @@ namespace tenochtitlan
 			running = true;
 			unique_lock<mutex> lk(idle_mutex, defer_lock);
 			while (running) {
-				lk.lock();
-				cout << "before idle_thread" << endl;
-				idle_thread.wait(lk);
-				lk.unlock();
+				if (!current_worker) {
+					lk.lock();
+					cout << "before idle_thread" << endl;
+					idle_thread.wait(lk);
+					lk.unlock();
+				}
 				if (!running)
 					break;
 

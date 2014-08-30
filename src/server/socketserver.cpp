@@ -81,6 +81,7 @@ namespace tenochtitlan
 					break;
 				}
 				
+				cout << "dequeuing connections " << connections.size() << endl;
 				while (!connections.empty()) {
 					shared_ptr<SocketServerThread> available_thread;
 					for (auto t : threads) {

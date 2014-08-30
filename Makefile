@@ -2,11 +2,11 @@ APPLICATION=tenochtitlan
 
 IDIR=./include
 CXX=g++
-CXXFLAGS=-I$(IDIR) -I./lib/libev-4.15 -L./lib/libev-4.15/.libs -std=c++11 -Wall -g
+CXXFLAGS=-I$(IDIR) -I./lib/libev -std=c++11 -Wall -g
 
 ODIR=build
 
-LIBS=-lm -lev
+LIBS=-L./lib/libev/.libs -lev
 
 _DEPS = management/disposable.h management/applicationlifecyclelistener.h socket/socketexception.h \
 	socket/tcpsocket.h socket/servertcpsocket.h socket/clienttcpsocket.h socket/tcpclientconnection.h \
@@ -28,10 +28,10 @@ $(ODIR)/%.o: src/%.cpp $(DEPS)
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
 all: $(OBJS)
-	$(CXX) -o $(APPLICATION) $^ $(CXXFLAGS) $(LIBS)
+	$(CXX) $(LIBS) $(CXXFLAGS) $^ -o $(APPLICATION)
 
 .PHONY: clean
 
 clean:
 	rm -rf $(ODIR)
-	rm $(APPLICATION)
+	rm -f $(APPLICATION)

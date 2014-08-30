@@ -18,7 +18,7 @@ namespace tenochtitlan
 			bool receiving_request = true;
 			cout << "HttpSocketServerWorker::Execute" << endl;
 			while (receiving_request) {
-				int bytes_read = client->Read(buffer, buflen, 100);
+				int bytes_read = client->Read(buffer, buflen);
 				if (bytes_read > 0) {
 					req_str.append(buffer, bytes_read);
 				}
