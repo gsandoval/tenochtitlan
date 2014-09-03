@@ -36,6 +36,8 @@ int main(int argc, char *argv[])
 		cout << e.what() << endl;
 	}
 
+	cout << "Executing http server on port " << PORT << endl;
+
 	cin.ignore(numeric_limits<streamsize>::max());
 	cin.get();
 	cout << "Exiting" << endl;

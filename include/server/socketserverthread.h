@@ -19,6 +19,8 @@ namespace tenochtitlan
 			std::shared_ptr<SocketServerWorker> current_worker;
 			std::condition_variable idle_thread;
 			std::mutex idle_mutex;
+			std::mutex stop_wait_mutex;
+			std::condition_variable stop_wait;
 
 			void Run();
 		public:

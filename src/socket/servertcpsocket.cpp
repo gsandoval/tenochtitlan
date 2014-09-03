@@ -40,9 +40,15 @@ namespace tenochtitlan
 		void ServerTcpSocket::Listen(string address, int port)
 		{
 			struct sockaddr_in serveraddr;
-			 
+		 
 			if ((master_socket = ::socket(AF_INET, SOCK_STREAM, 0)) == -1) {
 				throw SocketException("Could not create socket");
+			}
+
+			int yes = 1;
+
+			if (setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1) {
+			    throw SocketException("Error configuring the master socket to be reused");
 			}
 			
 			serveraddr.sin_family = AF_INET;
@@ -53,18 +59,19 @@ namespace tenochtitlan
 			fcntl(master_socket, F_SETFL, fcntl(master_socket, F_GETFL, 0) | O_NONBLOCK);
 
 			if (::bind(master_socket, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) == -1) {
+				cout << "Error binding socket" << endl;
 			    throw SocketException("Could not bind address to socket");
 			}
 			 
 			if (listen(master_socket, 10) == -1) {
+				cout << "Error listening to socket" << endl;
 			    throw SocketException("Could not listen on socket");
 			}
 
-			io.set<ServerTcpSocket, &ServerTcpSocket::Accept>(this);
-            io.start(master_socket, ev::READ);
-
-            
 			thread t = thread([&] {
+				io.set<ServerTcpSocket, &ServerTcpSocket::Accept>(this);
+	            io.start(master_socket, ev::READ);
+
 				loop.run(0);
 			});
 			t.detach();
@@ -89,6 +96,7 @@ namespace tenochtitlan
 			shutdown(master_socket, SHUT_RDWR);
 			close(master_socket);
 			loop.break_loop();
+			cout << "Closing master_socket" << endl;
 		}
 	}
 }

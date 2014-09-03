@@ -50,6 +50,7 @@ namespace tenochtitlan
 				t->Stop();
 			}
 
+			/*
 			bool all_threads_stopped = false;
 			while (!all_threads_stopped) {
 				all_threads_stopped = true;
@@ -59,6 +60,7 @@ namespace tenochtitlan
 				if (!all_threads_stopped)
 					this_thread::sleep_for(chrono::milliseconds(100));
 			}
+			*/
 
 			while (!stopped)
 				this_thread::sleep_for(chrono::milliseconds(100));

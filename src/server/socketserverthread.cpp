@@ -47,10 +47,20 @@ namespace tenochtitlan
 				return;
 			
 			running = false;
+			cout << "before stop notify all" << endl;
 			idle_thread.notify_all();
+			cout << "after stop notify all" << endl;
 
+			unique_lock<mutex> stop_lock(stop_wait_mutex);
+			if (!stopped)
+				stop_wait.wait(stop_lock);
+			stop_lock.unlock();
+
+			/*
 			while (!stopped)
 				this_thread::sleep_for(chrono::milliseconds(100));
+			*/
+			cout << "Exiting stop method" << endl;
 		}
 
 		void SocketServerThread::Run()
@@ -79,7 +89,12 @@ namespace tenochtitlan
 				current_worker = nullptr;
 			}
 
+			cout << "Stopping SocketServerThread" << endl;
+
+			unique_lock<mutex> stop_lock(stop_wait_mutex);
 			stopped = true;
+			stop_lock.unlock();
+			stop_wait.notify_all();
 		}
 
 		bool SocketServerThread::IsStopped()
