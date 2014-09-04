@@ -22,6 +22,7 @@ namespace tenochtitlan
 				if (bytes_read > 0) {
 					req_str.append(buffer, bytes_read);
 				}
+				cout << "bytes read " << bytes_read << endl;
 				if ((req_str != "" && bytes_read == 0) || client->IsClosed()) {
 					receiving_request = false;
 				}

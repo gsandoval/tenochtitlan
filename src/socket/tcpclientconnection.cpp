@@ -70,13 +70,14 @@ namespace tenochtitlan
 
 		void TcpClientConnection::SignalEvent(ev::io &watcher, int revents)
 		{
-			/*
 			if (revents & EV_READ) 
-                read_cb(watcher);
+                DoRead();
 
             if (revents & EV_WRITE) 
-                write_cb(watcher);
+                DoWrite();
 
+            io.set(ev::READ);
+            /*
             if (write_queue.empty()) {
                 io.set(ev::READ);
             } else {
