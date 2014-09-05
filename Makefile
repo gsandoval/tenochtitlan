@@ -6,9 +6,9 @@ CXXFLAGS=-I$(IDIR) -I./lib/libev -std=c++11 -Wall -g
 
 ODIR=build
 
-LIBS=-L./lib/libev/.libs -lev
+LIBS=./lib/libev/.libs/libev.a
 
-_DEPS = management/disposable.h management/applicationlifecyclelistener.h socket/socketexception.h \
+_DEPS = management/disposable.h management/applicationlifecyclelistener.h socket/buffer.h socket/socketexception.h \
 	socket/tcpsocket.h socket/servertcpsocket.h socket/clienttcpsocket.h socket/tcpclientconnection.h \
 	socket/tcpclientconnectionhandler.h server/socketserver.h server/socketserverworker.h \
 	server/httpsocketserverworker.h server/rawsocketserverworker.h server/socketserverworkercreator.h \
@@ -16,7 +16,7 @@ _DEPS = management/disposable.h management/applicationlifecyclelistener.h socket
 	http/httprequestprocessor.h http/httpentity.h http/httpsocketserverworkercreator.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJS = management/applicationlifecyclelistener.o socket/socketexception.o socket/tcpsocket.o \
+_OBJS = management/applicationlifecyclelistener.o socket/buffer.o socket/socketexception.o socket/tcpsocket.o \
 	socket/servertcpsocket.o socket/clienttcpsocket.o socket/tcpclientconnection.o server.o \
 	server/socketserver.o server/socketserverworker.o server/httpsocketserverworker.o \
 	server/rawsocketserverworker.o server/socketserverthread.o parser/jsonparser.o parser/httpparser.o \
@@ -28,7 +28,7 @@ $(ODIR)/%.o: src/%.cpp $(DEPS)
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
 all: $(OBJS)
-	$(CXX) $(LIBS) $(CXXFLAGS) $^ -o $(APPLICATION)
+	$(CXX) $(CXXFLAGS) $^ -o $(APPLICATION) $(LIBS)
 
 .PHONY: clean
 

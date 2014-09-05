@@ -2,8 +2,10 @@
 #ifndef _TCP_CLIENT_CONNECTION_H_
 #define _TCP_CLIENT_CONNECTION_H_
 
+#include "buffer.h"
 #include <ev++.h>
 #include <queue>
+#include <thread>
 
 namespace tenochtitlan
 {
@@ -15,7 +17,12 @@ namespace tenochtitlan
 			bool closed;
 			int socket_fd;
 			ev::io io;
-			std::queue<Buffer> write_queue;
+			std::queue<std::shared_ptr<Buffer>> write_queue;
+			std::queue<std::shared_ptr<Buffer>> read_queue;
+			std::mutex read_queue_mutex;
+			std::mutex write_queue_mutex;
+
+			void UpdateEvents();
 		public:
 			TcpClientConnection();
 			~TcpClientConnection();
@@ -23,7 +30,8 @@ namespace tenochtitlan
 			int FileDescriptor();
 			void Open(int master_socket);
 			void Close();
-			int Read(char* buf, int buffer_size);
+			std::queue<std::shared_ptr<Buffer>> Read();
+			std::queue<std::shared_ptr<Buffer>> ReadOrWait(timeInMillis);
 			void Write(char *buf, int buffer_size);
 			void DoRead();
 			void DoWrite();
