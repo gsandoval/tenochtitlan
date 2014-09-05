@@ -73,6 +73,7 @@ namespace tenochtitlan
 	            io.start(master_socket, ev::READ);
 
 				loop.run(0);
+				cout << "WHY!" << endl;
 			});
 			t.detach();
 		}
@@ -82,6 +83,7 @@ namespace tenochtitlan
 				cout << "An error occurred accepting a connection" << endl;
 				return;
 			}
+			io.set(ev::READ);
 
 			auto client = make_shared<TcpClientConnection>();
 			client->Open(watcher.fd); // master_socket

@@ -2,6 +2,7 @@
 #include "parser/httpparser.h"
 #include <string>
 #include <iostream>
+#include <queue>
 
 namespace tenochtitlan
 {
@@ -11,29 +12,19 @@ namespace tenochtitlan
 
 		void HttpSocketServerWorker::Execute()
 		{
-			int buflen = 255;
-			char buffer[256];
-			
 			string req_str = "";
-			bool receiving_request = true;
 			cout << "HttpSocketServerWorker::Execute" << endl;
-			while (receiving_request) {
-				int bytes_read = client->Read(buffer, buflen);
-				if (bytes_read > 0) {
-					req_str.append(buffer, bytes_read);
-				}
-				cout << "bytes read " << bytes_read << endl;
-				if ((req_str != "" && bytes_read == 0) || client->IsClosed()) {
-					receiving_request = false;
-				}
+			queue<shared_ptr<socket::Buffer>> buffers_read = client->ReadOrWait(10000);
+			while (!buffers_read.empty()) {
+				req_str.append(buffers_read.front()->Buf(), buffers_read.front()->Size());
+				buffers_read.pop();
 			}
-			cout << "End loop" << endl;
 			cout << req_str << endl;
 			auto parser = make_shared<parser::HttpParser>();
 			shared_ptr<http::HttpEntity> http_request = parser->Parse(req_str);
 			shared_ptr<http::HttpEntity> http_response = request_processor->ProcessRequest(http_request);
 
-			//client->Write();
+			client->Close();
 		}
 
 		void HttpSocketServerWorker::SetRequestProcessor(

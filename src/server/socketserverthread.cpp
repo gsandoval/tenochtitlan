@@ -28,7 +28,12 @@ namespace tenochtitlan
 			
 		void SocketServerThread::Execute(shared_ptr<SocketServerWorker> worker)
 		{
+			executing = true;
+
+			unique_lock<mutex> lk(idle_mutex);
 			current_worker = worker;
+			lk.unlock();
+
 			idle_thread.notify_all();
 			cout << "notify idle thread" << endl;
 		}
@@ -68,25 +73,29 @@ namespace tenochtitlan
 			running = true;
 			unique_lock<mutex> lk(idle_mutex, defer_lock);
 			while (running) {
+				lk.lock();
 				if (!current_worker) {
-					lk.lock();
 					cout << "before idle_thread" << endl;
 					idle_thread.wait(lk);
-					lk.unlock();
+					cout << "idle_thread woke up" << endl;
 				}
-				if (!running)
+				if (!running) {
+					lk.unlock();
+					cout << "idle_thread unlocked" << endl;
 					break;
+				}
 
-				executing = true;
 				cout << "before execute" << endl;
 				current_worker->Execute();
 				cout << "after execute" << endl;
-				executing = false;
 				
 				processing_unit_cv.notify_all();
 				cout << "after notifying execute finished" << endl;
 
 				current_worker = nullptr;
+				lk.unlock();
+				cout << "idle_thread unlocked" << endl;
+				executing = false;
 			}
 
 			cout << "Stopping SocketServerThread" << endl;

@@ -14,11 +14,7 @@ namespace tenochtitlan
 
 		void RawSocketServerWorker::Execute()
 		{
-			char buffer[1024];
-			int bytes_read = client->Read(buffer, 1024);
-			cout << "buffer content " << buffer << endl << flush;
-			client->Write(buffer, bytes_read);
-			client->Close();
+			
 		}
 	}
 }

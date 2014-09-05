@@ -93,17 +93,20 @@ namespace tenochtitlan
 						}
 					}
 					if (!available_thread && max_worker_count > threads.size()) {
+						cout << "creating new server thread" << endl;
 						available_thread = shared_ptr<SocketServerThread>(new SocketServerThread(processing_unit_cv));
 						available_thread->Start();
 						threads.push_back(available_thread);
 					}
 					if (available_thread) {
+						cout << "assigning connection to thread" << endl;
 						auto worker = creator->Create();
 						auto conn = connections.front();
 						connections.pop();
 						worker->HandleClient(conn);
 						available_thread->Execute(worker);
 					} else {
+						cout << "no thread found for connection" << endl;
 						break;
 					}
 				}

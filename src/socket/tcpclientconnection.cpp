@@ -2,6 +2,7 @@
 #include "socket/socketexception.h"
 #include <iostream>
 #include <memory>
+#include <chrono>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -20,7 +21,7 @@ namespace tenochtitlan
 
 		TcpClientConnection::~TcpClientConnection()
 		{
-			cout << "~TcpClientConnection" << endl;
+			cout << socket_fd << " ~TcpClientConnection" << endl;
 		}
 
 		void TcpClientConnection::Open(int master_socket) {
@@ -31,7 +32,7 @@ namespace tenochtitlan
 				throw SocketException("Could not accept connection");
 			//printf("New connection from %s on socket %d\n", inet_ntoa(clientaddr.sin_addr), socket_fd);
 
-			cout << "socket_fd" << socket_fd << endl;
+			cout << "socket_fd " << socket_fd << endl;
 			fcntl(socket_fd, F_SETFL, fcntl(socket_fd, F_GETFL, 0) | O_NONBLOCK); 
             io.set<TcpClientConnection, &TcpClientConnection::SignalEvent>(this);
 
@@ -54,20 +55,24 @@ namespace tenochtitlan
 			return local_copy;
 		}
 
-		queue<shared_ptr<Buffer>> TcpClientConnection::ReadOrWait(timeInMillis)
+		queue<shared_ptr<Buffer>> TcpClientConnection::ReadOrWait(int time_in_millis)
 		{
+			cout << "Reading" << endl;
 			unique_lock<mutex> lk(read_queue_mutex);
 			if (read_queue.empty()) {
-				// wait for time
+				cout << "waiting" << endl;
+				read_wait.wait_for(lk, chrono::milliseconds(time_in_millis));
 			}
-			auto local_copy = Read();
+			auto local_copy = read_queue;
+			while (!read_queue.empty()) read_queue.pop();
 			lk.unlock();
+			cout << "returning buffer queue" << endl;
 			return local_copy;
 		}
 
 		void TcpClientConnection::Write(char *buf, int buffer_size)
 		{
-			shared_ptr<Buffer> buffer(buf, buffer_size);
+			shared_ptr<Buffer> buffer(new Buffer(buf, buffer_size));
 			unique_lock<mutex> lk(write_queue_mutex);
 			write_queue.push(buffer);
 			lk.unlock();
@@ -95,12 +100,10 @@ namespace tenochtitlan
 
 		void TcpClientConnection::DoRead()
 		{
+			int buffer_size = 255;
 			char *buf = new char[256];
 			int bytes_read = recv(socket_fd, buf, buffer_size, 0);
 			if (bytes_read <= 0) {
-				if (bytes_read == 0) {
-					Close();
-				}
 				if (errno == EAGAIN) {
 					bytes_read = 0;
 				}
@@ -115,6 +118,8 @@ namespace tenochtitlan
 			read_queue.push(buffer);
 			lk.unlock();
 
+			cout << socket_fd << " Notifying read " << bytes_read << "bytes" << endl;
+			read_wait.notify_all();
 			UpdateEvents();
 		}
 
