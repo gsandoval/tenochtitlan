@@ -1,7 +1,6 @@
 #include "socket/servertcpsocket.h"
 #include "socket/socketexception.h"
 
-#include <iostream>
 #include <thread>
 #include <chrono>
 #include <cstdlib>
@@ -22,13 +21,13 @@ namespace tenochtitlan
 
 		ServerTcpSocket::ServerTcpSocket() : listening(false), stopped(false)
 		{
-
+			logger = shared_ptr<management::Logger>(new management::Logger("ServerTcpSocket"));
 		}
 
 		ServerTcpSocket::~ServerTcpSocket()
 		{
 			Dispose();
-			cout << "~ServerTcpSocket" << endl;
+			logger->Debug(__func__, "~ServerTcpSocket");
 		}
 
 		void ServerTcpSocket::SetConnectionHandler(
@@ -59,12 +58,12 @@ namespace tenochtitlan
 			fcntl(master_socket, F_SETFL, fcntl(master_socket, F_GETFL, 0) | O_NONBLOCK);
 
 			if (::bind(master_socket, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) == -1) {
-				cout << "Error binding socket" << endl;
+				logger->Debug(__func__, "Error binding socket");
 			    throw SocketException("Could not bind address to socket");
 			}
 			 
 			if (listen(master_socket, 10) == -1) {
-				cout << "Error listening to socket" << endl;
+				logger->Debug(__func__, "Error listening to socket");
 			    throw SocketException("Could not listen on socket");
 			}
 
@@ -73,14 +72,14 @@ namespace tenochtitlan
 	            io.start(master_socket, ev::READ);
 
 				loop.run(0);
-				cout << "WHY!" << endl;
+				logger->Debug(__func__, "WHY!");
 			});
 			t.detach();
 		}
 
 		void ServerTcpSocket::Accept(ev::io &watcher, int revents) {
 			if (EV_ERROR & revents) {
-				cout << "An error occurred accepting a connection" << endl;
+				logger->Debug(__func__, "An error occurred accepting a connection");
 				return;
 			}
 			io.set(ev::READ);
@@ -98,7 +97,7 @@ namespace tenochtitlan
 			shutdown(master_socket, SHUT_RDWR);
 			close(master_socket);
 			loop.break_loop();
-			cout << "Closing master_socket" << endl;
+			logger->Debug(__func__, "Closing master_socket");
 		}
 	}
 }

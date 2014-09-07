@@ -2,6 +2,7 @@
 #define _SOCKET_SERVER_THREAD_H_
 
 #include "socketserverworker.h"
+#include "management/logger.h"
 #include <memory>
 #include <condition_variable>
 
@@ -21,6 +22,7 @@ namespace tenochtitlan
 			std::mutex idle_mutex;
 			std::mutex stop_wait_mutex;
 			std::condition_variable stop_wait;
+			std::shared_ptr<management::Logger> logger;
 
 			void Run();
 		public:

@@ -2,6 +2,7 @@
 #ifndef _TCP_CLIENT_CONNECTION_H_
 #define _TCP_CLIENT_CONNECTION_H_
 
+#include "management/logger.h"
 #include "buffer.h"
 #include <ev++.h>
 #include <queue>
@@ -24,6 +25,7 @@ namespace tenochtitlan
 			std::mutex read_queue_mutex;
 			std::mutex write_queue_mutex;
 			std::condition_variable read_wait;
+			std::shared_ptr<management::Logger> logger;
 
 			void UpdateEvents();
 		public:

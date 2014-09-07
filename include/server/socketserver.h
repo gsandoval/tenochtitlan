@@ -5,6 +5,7 @@
 #include "server/socketserverthread.h"
 #include "server/socketserverworkercreator.h"
 #include "management/disposable.h"
+#include "management/logger.h"
 #include <vector>
 #include <queue>
 #include <condition_variable>
@@ -25,6 +26,7 @@ namespace tenochtitlan
 			std::vector<std::shared_ptr<SocketServerThread>> threads;
 			std::condition_variable processing_unit_cv;
 			std::mutex connections_mutex;
+			std::shared_ptr<management::Logger> logger;
 
 			void Run();
 		public:

@@ -9,7 +9,6 @@ namespace tenochtitlan
 
 		TcpSocket::~TcpSocket()
 		{
-			cout << "~TcpSocket" << endl;
 		}
 	}
 }

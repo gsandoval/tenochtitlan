@@ -11,19 +11,19 @@ namespace tenochtitlan
 		SocketServerThread::SocketServerThread() : 
 			executing(false), stopped(false), running(false)
 		{
-
+			logger = shared_ptr<management::Logger>(new management::Logger("SocketServerThread"));
 		}
 
 		SocketServerThread::SocketServerThread(condition_variable& processing_unit_cv) : 
 			executing(false), stopped(false), running(false)
 		{
-
+			logger = shared_ptr<management::Logger>(new management::Logger("SocketServerThread"));
 		}
 		
 		SocketServerThread::~SocketServerThread()
 		{
 			Stop();
-			cout << "~SocketServerThread" << endl;
+			logger->Debug(__func__, "~SocketServerThread");
 		}
 			
 		void SocketServerThread::Execute(shared_ptr<SocketServerWorker> worker)
@@ -35,7 +35,7 @@ namespace tenochtitlan
 			lk.unlock();
 
 			idle_thread.notify_all();
-			cout << "notify idle thread" << endl;
+			logger->Debug(__func__, "notify idle thread");
 		}
 
 		void SocketServerThread::Start()
@@ -52,9 +52,9 @@ namespace tenochtitlan
 				return;
 			
 			running = false;
-			cout << "before stop notify all" << endl;
+			logger->Debug(__func__, "before stop notify all");
 			idle_thread.notify_all();
-			cout << "after stop notify all" << endl;
+			logger->Debug(__func__, "after stop notify all");
 
 			unique_lock<mutex> stop_lock(stop_wait_mutex);
 			if (!stopped)
@@ -65,7 +65,7 @@ namespace tenochtitlan
 			while (!stopped)
 				this_thread::sleep_for(chrono::milliseconds(100));
 			*/
-			cout << "Exiting stop method" << endl;
+			logger->Debug(__func__, "Exiting stop method");
 		}
 
 		void SocketServerThread::Run()
@@ -75,30 +75,30 @@ namespace tenochtitlan
 			while (running) {
 				lk.lock();
 				if (!current_worker) {
-					cout << "before idle_thread" << endl;
+					logger->Debug(__func__, "before idle_thread");
 					idle_thread.wait(lk);
-					cout << "idle_thread woke up" << endl;
+					logger->Debug(__func__, "idle_thread woke up");
 				}
 				if (!running) {
 					lk.unlock();
-					cout << "idle_thread unlocked" << endl;
+					logger->Debug(__func__, "idle_thread unlocked");
 					break;
 				}
 
-				cout << "before execute" << endl;
+				logger->Debug(__func__, "before execute");
 				current_worker->Execute();
-				cout << "after execute" << endl;
+				logger->Debug(__func__, "after execute");
 				
 				processing_unit_cv.notify_all();
-				cout << "after notifying execute finished" << endl;
+				logger->Debug(__func__, "after notifying execute finished");
 
 				current_worker = nullptr;
 				lk.unlock();
-				cout << "idle_thread unlocked" << endl;
+				logger->Debug(__func__, "idle_thread unlocked");
 				executing = false;
 			}
 
-			cout << "Stopping SocketServerThread" << endl;
+			logger->Debug(__func__, "Stopping SocketServerThread");
 
 			unique_lock<mutex> stop_lock(stop_wait_mutex);
 			stopped = true;

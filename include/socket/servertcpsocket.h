@@ -5,6 +5,7 @@
 #include "tcpclientconnection.h"
 #include "tcpclientconnectionhandler.h"
 #include "management/disposable.h"
+#include "management/logger.h"
 
 #include <ev++.h>
 
@@ -26,6 +27,7 @@ namespace tenochtitlan
 			bool stopped;
 			int master_socket;
 			std::shared_ptr<TcpClientConnectionHandler> connection_handler;
+			std::shared_ptr<management::Logger> logger;
 
 			void Run();
 			void Stop();

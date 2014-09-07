@@ -3,6 +3,7 @@
 
 #include "server/socketserverworker.h"
 #include "http/httprequestprocessor.h"
+#include "management/logger.h"
 
 namespace tenochtitlan
 {
@@ -12,7 +13,10 @@ namespace tenochtitlan
 		{
 		private:
 			std::shared_ptr<http::HttpRequestProcessor> request_processor;
+			std::shared_ptr<management::Logger> logger;
 		public:
+			HttpSocketServerWorker();
+
 			void Execute();
 			void ReadReady();
 			void WriteReady();

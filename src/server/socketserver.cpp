@@ -1,6 +1,6 @@
 #include "server/socketserver.h"
 
-#include <iostream>
+#include <sstream>
 #include <thread>
 #include <chrono>
 
@@ -12,13 +12,13 @@ namespace tenochtitlan
 
 		SocketServer::SocketServer() : processing(false), stopped(false), max_worker_count(10)
 		{
-
+			logger = shared_ptr<management::Logger>(new management::Logger("SocketServer"));
 		}
 
 		SocketServer::~SocketServer()
 		{
 			Stop();
-			cout << "~SocketServer" << endl;
+			logger->Debug(__func__, "~SocketServer");
 		}
 
 		void SocketServer::HandleNewConnection(shared_ptr<socket::TcpClientConnection> connection)
@@ -83,7 +83,9 @@ namespace tenochtitlan
 					break;
 				}
 				
-				cout << "dequeuing connections " << connections.size() << endl;
+				ostringstream oss;
+				oss << "dequeuing connections " << connections.size();
+				logger->Debug(__func__, oss.str());
 				while (!connections.empty()) {
 					shared_ptr<SocketServerThread> available_thread;
 					for (auto t : threads) {
@@ -93,27 +95,27 @@ namespace tenochtitlan
 						}
 					}
 					if (!available_thread && max_worker_count > threads.size()) {
-						cout << "creating new server thread" << endl;
+						logger->Debug(__func__, "creating new server thread");
 						available_thread = shared_ptr<SocketServerThread>(new SocketServerThread(processing_unit_cv));
 						available_thread->Start();
 						threads.push_back(available_thread);
 					}
 					if (available_thread) {
-						cout << "assigning connection to thread" << endl;
+						logger->Debug(__func__, "assigning connection to thread");
 						auto worker = creator->Create();
 						auto conn = connections.front();
 						connections.pop();
 						worker->HandleClient(conn);
 						available_thread->Execute(worker);
 					} else {
-						cout << "no thread found for connection" << endl;
+						logger->Debug(__func__, "no thread found for connection");
 						break;
 					}
 				}
 				lk.unlock();
 			}
 
-			cout << "Stopping SocketServer" << endl;
+			logger->Debug(__func__, "Stopping SocketServer");
 			stopped = true;
 		}
 

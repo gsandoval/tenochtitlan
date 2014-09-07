@@ -1,6 +1,6 @@
 #include "socket/tcpclientconnection.h"
 #include "socket/socketexception.h"
-#include <iostream>
+#include <sstream>
 #include <memory>
 #include <chrono>
 #include <netinet/in.h>
@@ -17,11 +17,14 @@ namespace tenochtitlan
 
 		TcpClientConnection::TcpClientConnection() : closed(false)
 		{
+			logger = shared_ptr<management::Logger>(new management::Logger("TcpClientConnection"));
 		}
 
 		TcpClientConnection::~TcpClientConnection()
 		{
-			cout << socket_fd << " ~TcpClientConnection" << endl;
+			ostringstream oss;
+			oss << socket_fd << " ~TcpClientConnection";
+			logger->Debug(__func__, oss.str());
 		}
 
 		void TcpClientConnection::Open(int master_socket) {
@@ -32,7 +35,10 @@ namespace tenochtitlan
 				throw SocketException("Could not accept connection");
 			//printf("New connection from %s on socket %d\n", inet_ntoa(clientaddr.sin_addr), socket_fd);
 
-			cout << "socket_fd " << socket_fd << endl;
+			ostringstream oss;
+			oss << "socket_fd " << socket_fd;
+			logger->Debug(__func__, oss.str());
+
 			fcntl(socket_fd, F_SETFL, fcntl(socket_fd, F_GETFL, 0) | O_NONBLOCK); 
             io.set<TcpClientConnection, &TcpClientConnection::SignalEvent>(this);
 
@@ -57,16 +63,16 @@ namespace tenochtitlan
 
 		queue<shared_ptr<Buffer>> TcpClientConnection::ReadOrWait(int time_in_millis)
 		{
-			cout << "Reading" << endl;
+			logger->Debug(__func__, "Reading");
 			unique_lock<mutex> lk(read_queue_mutex);
 			if (read_queue.empty()) {
-				cout << "waiting" << endl;
+				logger->Debug(__func__, "waiting");
 				read_wait.wait_for(lk, chrono::milliseconds(time_in_millis));
 			}
 			auto local_copy = read_queue;
 			while (!read_queue.empty()) read_queue.pop();
 			lk.unlock();
-			cout << "returning buffer queue" << endl;
+			logger->Debug(__func__, "returning buffer queue");
 			return local_copy;
 		}
 
@@ -118,7 +124,10 @@ namespace tenochtitlan
 			read_queue.push(buffer);
 			lk.unlock();
 
-			cout << socket_fd << " Notifying read " << bytes_read << "bytes" << endl;
+			ostringstream oss;
+			oss << socket_fd << " Notifying read " << bytes_read << "bytes";
+			logger->Debug(__func__, oss.str());
+
 			read_wait.notify_all();
 			UpdateEvents();
 		}
