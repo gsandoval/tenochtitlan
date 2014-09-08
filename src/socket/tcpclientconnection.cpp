@@ -150,9 +150,9 @@ namespace tenochtitlan
 		void TcpClientConnection::UpdateEvents()
 		{
 			if (write_queue.empty()) {
-                io.set(ev::READ);
+                io.set(socket_fd, ev::READ);
             } else {
-                io.set(ev::READ|ev::WRITE);
+                io.set(socket_fd, ev::READ|ev::WRITE);
             }
 		}
 	}

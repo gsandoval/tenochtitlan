@@ -82,7 +82,7 @@ namespace tenochtitlan
 				logger->Debug(__func__, "An error occurred accepting a connection");
 				return;
 			}
-			io.set(ev::READ);
+			io.set(master_socket, ev::READ);
 
 			auto client = make_shared<TcpClientConnection>();
 			client->Open(watcher.fd); // master_socket
