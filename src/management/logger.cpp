@@ -51,8 +51,13 @@ namespace tenochtitlan
 
 		void Logger::Debug(string mtd, string msg)
 		{
+			chrono::system_clock::time_point now = chrono::system_clock::now();
+			time_t tt = chrono::system_clock::to_time_t(now);
+			char mbstr[100];
+		    std::strftime(mbstr, sizeof(mbstr), "%F %T", std::localtime(&tt));
+
 			ostringstream oss;
-			oss << "[DEBUG] " << this_thread::get_id() << " [" << class_name << "::" << mtd << "] " << msg;
+			oss << mbstr << " [DEBUG] " << this_thread::get_id() << " [" << class_name << "::" << mtd << "] " << msg;
 
 			unique_lock<mutex> lk(messages_mutex);
 			messages.push(oss.str());
@@ -63,8 +68,13 @@ namespace tenochtitlan
 
 		void Logger::Info(string mtd, string msg)
 		{
+			chrono::system_clock::time_point now = chrono::system_clock::now();
+			time_t tt = chrono::system_clock::to_time_t(now);
+			char mbstr[100];
+		    std::strftime(mbstr, sizeof(mbstr), "%F %T", std::localtime(&tt));
+
 			ostringstream oss;
-			oss << "[INFO] " << this_thread::get_id() << " [" << class_name << "::" << mtd << "] " << msg;
+			oss << mbstr << " [INFO] " << this_thread::get_id() << " [" << class_name << "::" << mtd << "] " << msg;
 
 			unique_lock<mutex> lk(messages_mutex);
 			messages.push(oss.str());
@@ -75,8 +85,13 @@ namespace tenochtitlan
 
 		void Logger::Warn(string mtd, string msg)
 		{
+			chrono::system_clock::time_point now = chrono::system_clock::now();
+			time_t tt = chrono::system_clock::to_time_t(now);
+			char mbstr[100];
+		    std::strftime(mbstr, sizeof(mbstr), "%F %T", std::localtime(&tt));
+
 			ostringstream oss;
-			oss << "[WARN] " << this_thread::get_id() << " [" << class_name << "::" << mtd << "] " << msg;
+			oss << mbstr << " [WARN] " << this_thread::get_id() << " [" << class_name << "::" << mtd << "] " << msg;
 
 			unique_lock<mutex> lk(messages_mutex);
 			messages.push(oss.str());
@@ -87,8 +102,13 @@ namespace tenochtitlan
 
 		void Logger::Error(string mtd, string msg)
 		{
+			chrono::system_clock::time_point now = chrono::system_clock::now();
+			time_t tt = chrono::system_clock::to_time_t(now);
+			char mbstr[100];
+		    std::strftime(mbstr, sizeof(mbstr), "%F %T", std::localtime(&tt));
+
 			ostringstream oss;
-			oss << "[ERROR] " << this_thread::get_id() << " [" << class_name << "::" << mtd << "] " << msg;
+			oss << mbstr << " [ERROR] " << this_thread::get_id() << " [" << class_name << "::" << mtd << "] " << msg;
 
 			unique_lock<mutex> lk(messages_mutex);
 			messages.push(oss.str());
