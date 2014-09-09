@@ -56,15 +56,15 @@ namespace tenochtitlan
 			idle_thread.notify_all();
 			logger->Debug(__func__, "after stop notify all");
 
+			/*
 			unique_lock<mutex> stop_lock(stop_wait_mutex);
 			if (!stopped)
 				stop_wait.wait(stop_lock);
 			stop_lock.unlock();
+			*/
 
-			/*
 			while (!stopped)
 				this_thread::sleep_for(chrono::milliseconds(100));
-			*/
 			logger->Debug(__func__, "Exiting stop method");
 		}
 
@@ -100,10 +100,14 @@ namespace tenochtitlan
 
 			logger->Debug(__func__, "Stopping SocketServerThread");
 
+			/*
 			unique_lock<mutex> stop_lock(stop_wait_mutex);
+			*/
 			stopped = true;
+			/*
 			stop_lock.unlock();
 			stop_wait.notify_all();
+			*/
 		}
 
 		bool SocketServerThread::IsStopped()

@@ -22,10 +22,14 @@ namespace tenochtitlan
 		ServerTcpSocket::ServerTcpSocket() : listening(false), stopped(false)
 		{
 			logger = shared_ptr<management::Logger>(new management::Logger("ServerTcpSocket"));
+			loop = ev_default_loop(0);
+			ev_set_userdata(loop, this);
+			io = new ev_io();
 		}
 
 		ServerTcpSocket::~ServerTcpSocket()
 		{
+			delete io;
 			Dispose();
 			logger->Debug(__func__, "~ServerTcpSocket");
 		}
@@ -34,6 +38,14 @@ namespace tenochtitlan
 			shared_ptr<TcpClientConnectionHandler> connection_handler)
 		{
 			this->connection_handler = connection_handler;
+		}
+
+		void native_accept(struct ev_loop *loop, ev_io *w, int revents)
+		{
+			void *data = ev_userdata(loop);
+			ServerTcpSocket *server = (ServerTcpSocket *)data;
+			server->logger->Debug(__func__, "Something");
+			server->Accept(w->fd, revents);
 		}
 
 		void ServerTcpSocket::Listen(string address, int port)
@@ -67,25 +79,27 @@ namespace tenochtitlan
 			    throw SocketException("Could not listen on socket");
 			}
 
-			thread t = thread([&] {
-				io.set<ServerTcpSocket, &ServerTcpSocket::Accept>(this);
-	            io.start(master_socket, ev::READ);
+			logger->Debug(__func__, "Before init");
+			ev_io_init(io, native_accept, master_socket, EV_READ);
+			logger->Debug(__func__, "Before start");
+			ev_io_start(loop, io);
+			logger->Debug(__func__, "After start");
 
-				loop.run(0);
+			thread t = thread([&] {
+				ev_run(loop, 0);
 				logger->Debug(__func__, "WHY!");
 			});
 			t.detach();
 		}
 
-		void ServerTcpSocket::Accept(ev::io &watcher, int revents) {
+		void ServerTcpSocket::Accept(int master_fd, int revents) {
 			if (EV_ERROR & revents) {
 				logger->Debug(__func__, "An error occurred accepting a connection");
 				return;
 			}
-			io.set(master_socket, ev::READ);
 
 			auto client = make_shared<TcpClientConnection>();
-			client->Open(watcher.fd); // master_socket
+			client->Open(master_fd);
 
 			if (connection_handler) {
 				connection_handler->HandleNewConnection(client);
@@ -94,9 +108,12 @@ namespace tenochtitlan
 
 		void ServerTcpSocket::Dispose()
 		{
+			ev_io_stop(loop, io);
+
 			shutdown(master_socket, SHUT_RDWR);
 			close(master_socket);
-			loop.break_loop();
+			
+			ev_break(loop, EVBREAK_ONE);
 			logger->Debug(__func__, "Closing master_socket");
 		}
 	}

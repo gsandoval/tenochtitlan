@@ -4,7 +4,7 @@
 
 #include "management/logger.h"
 #include "buffer.h"
-#include <ev++.h>
+#include <ev.h>
 #include <queue>
 #include <thread>
 #include <mutex>
@@ -19,7 +19,8 @@ namespace tenochtitlan
 		private:
 			bool closed;
 			int socket_fd;
-			ev::io io;
+			ev_io *io;
+			struct ev_loop *loop;
 			std::queue<std::shared_ptr<Buffer>> write_queue;
 			std::queue<std::shared_ptr<Buffer>> read_queue;
 			std::mutex read_queue_mutex;
@@ -40,8 +41,10 @@ namespace tenochtitlan
 			void Write(char *buf, int buffer_size);
 			void DoRead();
 			void DoWrite();
-			void SignalEvent(ev::io &watcher, int revents);
+			void SignalEvent(int socket_fd, int revents);
 			bool IsClosed();
+
+			friend void native_callback(struct ev_loop *loop, ev_io *w, int revents);
 		};
 	}
 }

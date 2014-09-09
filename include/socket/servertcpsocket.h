@@ -7,7 +7,7 @@
 #include "management/disposable.h"
 #include "management/logger.h"
 
-#include <ev++.h>
+#include <ev.h>
 
 #include <string>
 #include <vector>
@@ -21,8 +21,8 @@ namespace tenochtitlan
 		class ServerTcpSocket : public TcpSocket, public management::Disposable
 		{
 		private:
-			ev::io io;
-			ev::default_loop loop;
+			ev_io *io;
+			struct ev_loop *loop;
 			bool listening;
 			bool stopped;
 			int master_socket;
@@ -39,7 +39,9 @@ namespace tenochtitlan
 			void Listen(std::string address, int port);
 			void Dispose();
 
-			void Accept(ev::io &watcher, int revents);
+			void Accept(int socket_fd, int revents);
+
+			friend void native_accept(struct ev_loop *loop, ev_io *w, int revents);
 		};
 	}
 }

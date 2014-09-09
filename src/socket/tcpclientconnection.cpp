@@ -18,13 +18,26 @@ namespace tenochtitlan
 		TcpClientConnection::TcpClientConnection() : closed(false)
 		{
 			logger = shared_ptr<management::Logger>(new management::Logger("TcpClientConnection"));
+			loop = ev_loop_new(EVFLAG_AUTO);
+			ev_set_userdata(loop, this);
+			io = new ev_io();
 		}
 
 		TcpClientConnection::~TcpClientConnection()
 		{
+			delete io;
+			ev_loop_destroy(loop);
+
 			ostringstream oss;
 			oss << socket_fd << " ~TcpClientConnection";
 			logger->Debug(__func__, oss.str());
+		}
+
+		void native_callback(struct ev_loop *loop, ev_io *w, int revents)
+		{
+			void *data = ev_userdata(loop);
+			TcpClientConnection *conn = (TcpClientConnection *)data;
+			conn->SignalEvent(w->fd, revents);
 		}
 
 		void TcpClientConnection::Open(int master_socket) {
@@ -39,17 +52,27 @@ namespace tenochtitlan
 			oss << "socket_fd " << socket_fd;
 			logger->Debug(__func__, oss.str());
 
-			fcntl(socket_fd, F_SETFL, fcntl(socket_fd, F_GETFL, 0) | O_NONBLOCK); 
-            io.set<TcpClientConnection, &TcpClientConnection::SignalEvent>(this);
+			fcntl(socket_fd, F_SETFL, fcntl(socket_fd, F_GETFL, 0) | O_NONBLOCK);
 
-            io.start(socket_fd, ev::READ);
+			ev_io_init(io, native_callback, socket_fd, EV_READ);
+			ev_io_start(loop, io);
+
+			thread t = thread([&] {
+				ev_run(loop, 0);
+				logger->Debug(__func__, "CONNECTION END!");
+			});
+			t.detach();
 		}
 
 		void TcpClientConnection::Close()
 		{
 			closed = true;
-			io.stop();
+
+			ev_io_stop(loop, io);
+
 			close(socket_fd);
+
+			ev_break(loop);
 		}
 
 		queue<shared_ptr<Buffer>> TcpClientConnection::Read()
@@ -86,7 +109,7 @@ namespace tenochtitlan
 			UpdateEvents();
 		}
 
-		void TcpClientConnection::SignalEvent(ev::io &watcher, int revents)
+		void TcpClientConnection::SignalEvent(int socket_fd, int revents)
 		{
 			if (revents & EV_READ) 
                 DoRead();
@@ -150,9 +173,9 @@ namespace tenochtitlan
 		void TcpClientConnection::UpdateEvents()
 		{
 			if (write_queue.empty()) {
-                io.set(socket_fd, ev::READ);
+                ev_io_set(io, socket_fd, EV_READ);
             } else {
-                io.set(socket_fd, ev::READ|ev::WRITE);
+            	ev_io_set(io, socket_fd, EV_READ | EV_WRITE);
             }
 		}
 	}
