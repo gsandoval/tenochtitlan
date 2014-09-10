@@ -114,7 +114,8 @@ namespace tenochtitlan
                 DoWrite();
             lk.unlock();
 
-            Close();
+            if (close_requested)
+            	Close();
 		}
 
 		bool TcpClientConnection::IsClosed()

@@ -1,6 +1,8 @@
 #include "http/httpserver.h"
 #include "http/httprequestprocessor.h"
 #include "http/httpsocketserverworkercreator.h"
+#include "http/component/staticresourcecomponent.h"
+#include "http/component/restcomponent.h"
 
 namespace tenochtitlan
 {
@@ -10,7 +12,12 @@ namespace tenochtitlan
 
 		void HttpServer::Listen(string address, int port)
 		{
+			auto static_resource_component = make_shared<component::StaticResourceComponent>();
+			auto rest_component = make_shared<component::RestComponent>();
+
 			auto request_processor = make_shared<HttpRequestProcessor>();
+			request_processor->AddComponent(static_resource_component);
+			request_processor->AddComponent(rest_component);
 
 			auto worker_creator = shared_ptr<HttpSocketServerWorkerCreator>(new HttpSocketServerWorkerCreator(request_processor));
 
