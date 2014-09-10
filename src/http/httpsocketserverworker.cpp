@@ -22,12 +22,8 @@ namespace tenochtitlan
 				req_str.append(buffers_read.front()->Buf(), buffers_read.front()->Size());
 				buffers_read.pop();
 			}
-			logger->Debug(__func__, req_str);
 			auto parser = make_shared<parser::HttpParser>();
 			shared_ptr<http::HttpEntity> http_request = parser->Parse(req_str);
-			logger->Debug(__func__, http_request->Method());
-			logger->Debug(__func__, http_request->ResourcePath());
-			logger->Debug(__func__, http_request->Version());
 			shared_ptr<http::HttpEntity> http_response = request_processor->ProcessRequest(http_request);
 
 			client->Close();

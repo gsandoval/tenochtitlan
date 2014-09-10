@@ -2,6 +2,8 @@
 #define _STATIC_RESOURCE_COMPONENT_H_
 
 #include "httpcomponent.h"
+#include "management/logger.h"
+#include <memory>
 
 namespace tenochtitlan
 {
@@ -11,7 +13,10 @@ namespace tenochtitlan
 		{
 			class StaticResourceComponent : public HttpComponent
 			{
+			private:
+				std::shared_ptr<management::Logger> logger;
 			public:
+				StaticResourceComponent();
 				void Execute(std::shared_ptr<HttpContext> ctx);
 			};
 		}
