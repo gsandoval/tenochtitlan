@@ -16,7 +16,8 @@ namespace tenochtitlan
 			void HttpComponent::Next(shared_ptr<HttpContext> ctx)
 			{
 				Execute(ctx);
-				next_component->Next(ctx);
+				if (next_component)
+					next_component->Next(ctx);
 			}
 
 			void HttpComponent::Execute(shared_ptr<HttpContext> ctx)

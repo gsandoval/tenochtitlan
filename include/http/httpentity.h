@@ -27,7 +27,7 @@ namespace tenochtitlan
 			std::string ResourcePath();
 			void SetResourcePath(std::string);
 			std::string Header(std::string name);
-			void SetHeader(std::string name, std::string value);
+			void AddHeader(std::string name, std::string value);
 		};
 	}
 }

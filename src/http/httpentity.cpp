@@ -51,7 +51,7 @@ namespace tenochtitlan
 			return "";
 		}
 		
-		void HttpEntity::SetHeader(string name, string value)
+		void HttpEntity::AddHeader(string name, string value)
 		{
 			headers.push_back(make_pair(name, value));
 		}
