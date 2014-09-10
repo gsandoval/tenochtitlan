@@ -1,11 +1,11 @@
-#include "server/httpsocketserverworker.h"
+#include "http/httpsocketserverworker.h"
 #include "parser/httpparser.h"
 #include <string>
 #include <queue>
 
 namespace tenochtitlan
 {
-	namespace server
+	namespace http
 	{
 		using namespace std;
 

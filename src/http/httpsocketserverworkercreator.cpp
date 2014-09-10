@@ -13,7 +13,7 @@ namespace tenochtitlan
 
 		shared_ptr<server::SocketServerWorker> HttpSocketServerWorkerCreator::Create()
 		{
-			auto worker = make_shared<server::HttpSocketServerWorker>();
+			auto worker = make_shared<HttpSocketServerWorker>();
 			worker->SetRequestProcessor(processor);
 			return worker;
 		}

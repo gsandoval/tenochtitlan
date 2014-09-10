@@ -2,7 +2,7 @@
 #define _HTTP_SOCKET_SERVER_WORKER_CREATOR_H_
 
 #include "server/socketserverworkercreator.h"
-#include "server/httpsocketserverworker.h"
+#include "httpsocketserverworker.h"
 #include <memory>
 
 namespace tenochtitlan

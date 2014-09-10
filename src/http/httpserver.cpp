@@ -12,8 +12,7 @@ namespace tenochtitlan
 		{
 			auto request_processor = make_shared<HttpRequestProcessor>();
 
-			auto worker_creator = shared_ptr<HttpSocketServerWorkerCreator>(
-				new HttpSocketServerWorkerCreator(request_processor));
+			auto worker_creator = shared_ptr<HttpSocketServerWorkerCreator>(new HttpSocketServerWorkerCreator(request_processor));
 
 			server = make_shared<server::SocketServer>();
 			server->SetWorkerCreator(worker_creator);

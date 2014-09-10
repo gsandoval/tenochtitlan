@@ -11,14 +11,14 @@ LIBS=./lib/libev/.libs/libev.a
 _DEPS = management/logger.h management/disposable.h management/applicationlifecyclelistener.h socket/buffer.h socket/socketexception.h \
 	socket/tcpsocket.h socket/servertcpsocket.h socket/clienttcpsocket.h socket/tcpclientconnection.h \
 	socket/tcpclientconnectionhandler.h server/socketserver.h server/socketserverworker.h \
-	server/httpsocketserverworker.h server/rawsocketserverworker.h server/socketserverworkercreator.h \
+	http/httpsocketserverworker.h server/rawsocketserverworker.h server/socketserverworkercreator.h \
 	server/socketserverthread.h parser/jsonparser.h parser/httpparser.h http/httpserver.h \
 	http/httprequestprocessor.h http/httpentity.h http/httpsocketserverworkercreator.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
 _OBJS = management/logger.o management/applicationlifecyclelistener.o socket/buffer.o socket/socketexception.o socket/tcpsocket.o \
 	socket/servertcpsocket.o socket/clienttcpsocket.o socket/tcpclientconnection.o server.o \
-	server/socketserver.o server/socketserverworker.o server/httpsocketserverworker.o \
+	server/socketserver.o server/socketserverworker.o http/httpsocketserverworker.o \
 	server/rawsocketserverworker.o server/socketserverthread.o parser/jsonparser.o parser/httpparser.o \
 	http/httpserver.o http/httprequestprocessor.o http/httpentity.o http/httpsocketserverworkercreator.o
 OBJS = $(patsubst %,$(ODIR)/%,$(_OBJS))
