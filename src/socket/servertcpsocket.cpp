@@ -31,7 +31,6 @@ namespace tenochtitlan
 		{
 			delete io;
 			Dispose();
-			logger->Debug(__func__, "~ServerTcpSocket");
 		}
 
 		void ServerTcpSocket::SetConnectionHandler(
@@ -44,7 +43,6 @@ namespace tenochtitlan
 		{
 			void *data = ev_userdata(loop);
 			ServerTcpSocket *server = (ServerTcpSocket *)data;
-			server->logger->Debug(__func__, "Something");
 			server->Accept(w->fd, revents);
 		}
 
@@ -70,31 +68,24 @@ namespace tenochtitlan
 			fcntl(master_socket, F_SETFL, fcntl(master_socket, F_GETFL, 0) | O_NONBLOCK);
 
 			if (::bind(master_socket, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) == -1) {
-				logger->Debug(__func__, "Error binding socket");
 			    throw SocketException("Could not bind address to socket");
 			}
 			 
 			if (listen(master_socket, 10) == -1) {
-				logger->Debug(__func__, "Error listening to socket");
 			    throw SocketException("Could not listen on socket");
 			}
 
-			logger->Debug(__func__, "Before init");
 			ev_io_init(io, native_accept, master_socket, EV_READ);
-			logger->Debug(__func__, "Before start");
 			ev_io_start(loop, io);
-			logger->Debug(__func__, "After start");
 
 			thread t = thread([&] {
 				ev_run(loop, 0);
-				logger->Debug(__func__, "WHY!");
 			});
 			t.detach();
 		}
 
 		void ServerTcpSocket::Accept(int master_fd, int revents) {
 			if (EV_ERROR & revents) {
-				logger->Debug(__func__, "An error occurred accepting a connection");
 				return;
 			}
 
@@ -103,6 +94,8 @@ namespace tenochtitlan
 
 			if (connection_handler) {
 				connection_handler->HandleNewConnection(client);
+			} else {
+				logger->Warn(__func__, "A connection was received but no handler was registered");
 			}
         }
 
@@ -114,7 +107,6 @@ namespace tenochtitlan
 			close(master_socket);
 			
 			ev_break(loop, EVBREAK_ONE);
-			logger->Debug(__func__, "Closing master_socket");
 		}
 	}
 }

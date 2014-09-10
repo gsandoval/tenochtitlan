@@ -27,10 +27,6 @@ namespace tenochtitlan
 		{
 			delete io;
 			ev_loop_destroy(loop);
-
-			ostringstream oss;
-			oss << socket_fd << " ~TcpClientConnection";
-			logger->Debug(__func__, oss.str());
 		}
 
 		void native_callback(struct ev_loop *loop, ev_io *w, int revents)
@@ -48,10 +44,6 @@ namespace tenochtitlan
 				throw SocketException("Could not accept connection");
 			//printf("New connection from %s on socket %d\n", inet_ntoa(clientaddr.sin_addr), socket_fd);
 
-			ostringstream oss;
-			oss << "socket_fd " << socket_fd;
-			logger->Debug(__func__, oss.str());
-
 			fcntl(socket_fd, F_SETFL, fcntl(socket_fd, F_GETFL, 0) | O_NONBLOCK);
 
 			ev_io_init(io, native_callback, socket_fd, EV_READ);
@@ -59,20 +51,23 @@ namespace tenochtitlan
 
 			thread t = thread([&] {
 				ev_run(loop, 0);
-				logger->Debug(__func__, "CONNECTION END!");
 			});
 			t.detach();
 		}
 
 		void TcpClientConnection::Close()
 		{
-			closed = true;
+			unique_lock<mutex> lk(closed_mutex);
+			if (!closed) {
+				closed = true;
 
-			ev_io_stop(loop, io);
+				ev_io_stop(loop, io);
 
-			close(socket_fd);
+				close(socket_fd);
 
-			ev_break(loop);
+				ev_break(loop);
+			}
+			lk.unlock();
 		}
 
 		queue<shared_ptr<Buffer>> TcpClientConnection::Read()
@@ -86,16 +81,13 @@ namespace tenochtitlan
 
 		queue<shared_ptr<Buffer>> TcpClientConnection::ReadOrWait(int time_in_millis)
 		{
-			logger->Debug(__func__, "Reading");
 			unique_lock<mutex> lk(read_queue_mutex);
 			if (read_queue.empty()) {
-				logger->Debug(__func__, "waiting");
 				read_wait.wait_for(lk, chrono::milliseconds(time_in_millis));
 			}
 			auto local_copy = read_queue;
 			while (!read_queue.empty()) read_queue.pop();
 			lk.unlock();
-			logger->Debug(__func__, "returning buffer queue");
 			return local_copy;
 		}
 
@@ -104,17 +96,25 @@ namespace tenochtitlan
 			shared_ptr<Buffer> buffer(new Buffer(buf, buffer_size));
 			unique_lock<mutex> lk(write_queue_mutex);
 			write_queue.push(buffer);
+			UpdateEvents(); // Must be sync with the write_queue lock
 			lk.unlock();
-
-			UpdateEvents();
 		}
 
 		void TcpClientConnection::SignalEvent(int socket_fd, int revents)
 		{
+			unique_lock<mutex> lk(closed_mutex);
+			if (closed) {
+				logger->Warn(__func__, "Message ignored, connection closed.");
+				return;
+			}
+			bool close_requested = false;
 			if (revents & EV_READ) 
-                DoRead();
+                close_requested = DoRead();
             if (revents & EV_WRITE) 
                 DoWrite();
+            lk.unlock();
+
+            Close();
 		}
 
 		bool TcpClientConnection::IsClosed()
@@ -127,12 +127,16 @@ namespace tenochtitlan
 			return socket_fd;
 		}
 
-		void TcpClientConnection::DoRead()
+		bool TcpClientConnection::DoRead()
 		{
+			bool close_request = false;
 			int buffer_size = 255;
 			char *buf = new char[256];
 			int bytes_read = recv(socket_fd, buf, buffer_size, 0);
 			if (bytes_read <= 0) {
+				if (bytes_read == 0 && errno != EAGAIN) {
+					close_request = true;
+				}
 				if (errno == EAGAIN) {
 					bytes_read = 0;
 				}
@@ -147,12 +151,13 @@ namespace tenochtitlan
 			read_queue.push(buffer);
 			lk.unlock();
 
-			ostringstream oss;
-			oss << socket_fd << " Notifying read " << bytes_read << "bytes";
-			logger->Debug(__func__, oss.str());
-
 			read_wait.notify_all();
-			UpdateEvents();
+
+			unique_lock<mutex> write_lock(write_queue_mutex);
+			UpdateEvents(); // Must be sync with the write_queue lock
+			write_lock.unlock();
+
+			return close_request;
 		}
 
 		void TcpClientConnection::DoWrite()
@@ -165,9 +170,9 @@ namespace tenochtitlan
 				if (bytes_sent == -1)
 					throw SocketException("Error writing buffer to client");
 			}
-			lk.unlock();
 
-			UpdateEvents();
+			UpdateEvents(); // Must be sync with the write_queue lock
+			lk.unlock();
 		}
 
 		void TcpClientConnection::UpdateEvents()

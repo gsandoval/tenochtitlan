@@ -26,7 +26,6 @@ namespace tenochtitlan
 
 			void Run();
 		public:
-			SocketServerThread();
 			SocketServerThread(std::condition_variable& processing_unit_cv);
 			~SocketServerThread();
 			

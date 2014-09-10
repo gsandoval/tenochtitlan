@@ -25,6 +25,7 @@ namespace tenochtitlan
 			std::queue<std::shared_ptr<Buffer>> read_queue;
 			std::mutex read_queue_mutex;
 			std::mutex write_queue_mutex;
+			std::mutex closed_mutex;
 			std::condition_variable read_wait;
 			std::shared_ptr<management::Logger> logger;
 
@@ -39,7 +40,7 @@ namespace tenochtitlan
 			std::queue<std::shared_ptr<Buffer>> Read();
 			std::queue<std::shared_ptr<Buffer>> ReadOrWait(int time_in_millis);
 			void Write(char *buf, int buffer_size);
-			void DoRead();
+			bool DoRead();
 			void DoWrite();
 			void SignalEvent(int socket_fd, int revents);
 			bool IsClosed();

@@ -4,6 +4,7 @@
 #include "http/httpentity.h"
 #include <string>
 #include <memory>
+#include <vector>
 
 namespace tenochtitlan
 {
@@ -11,6 +12,8 @@ namespace tenochtitlan
 	{
 		class HttpParser
 		{
+		private:
+			std::unique_ptr<std::vector<std::string>> Split(std::string str, std::vector<char> delims);
 		public:
 			std::shared_ptr<http::HttpEntity> Parse(std::string str);
 		};
