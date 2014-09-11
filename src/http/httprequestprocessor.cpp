@@ -7,14 +7,10 @@ namespace tenochtitlan
 	{
 		using namespace std;
 
-		shared_ptr<HttpEntity> HttpRequestProcessor::ProcessRequest(shared_ptr<HttpEntity> req)
+		void HttpRequestProcessor::ProcessRequest(shared_ptr<component::HttpContext> ctx)
 		{
-			auto context = make_shared<component::HttpContext>();
-			context->SetRequest(req);
-			context->SetResponse(make_shared<HttpEntity>());
 			if (components.size() > 0)
-				components[0]->Next(context);
-			return context->Response();
+				components[0]->Next(ctx);
 		}
 
 		void HttpRequestProcessor::AddComponent(shared_ptr<component::HttpComponent> component)

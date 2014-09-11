@@ -22,9 +22,16 @@ namespace tenochtitlan
 				req_str.append(buffers_read.front()->Buf(), buffers_read.front()->Size());
 				buffers_read.pop();
 			}
+
 			auto parser = make_shared<parser::HttpParser>();
 			shared_ptr<http::HttpEntity> http_request = parser->Parse(req_str);
-			shared_ptr<http::HttpEntity> http_response = request_processor->ProcessRequest(http_request);
+
+			auto context = make_shared<component::HttpContext>();
+			context->SetRequest(http_request);
+			context->SetResponse(make_shared<HttpEntity>());
+			context->SetConnection(client);
+
+			request_processor->ProcessRequest(context);
 
 			client->Close();
 		}

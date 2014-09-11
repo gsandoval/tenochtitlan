@@ -1,7 +1,7 @@
 #ifndef _HTTP_REQUEST_PROCESSOR_H_
 #define _HTTP_REQUEST_PROCESSOR_H_
 
-#include "httpentity.h"
+#include "component/httpcontext.h"
 #include "component/httpcomponentfactory.h"
 #include <memory>
 
@@ -14,7 +14,7 @@ namespace tenochtitlan
 		private:
 			std::vector<std::shared_ptr<component::HttpComponent>> components;
 		public:
-			std::shared_ptr<HttpEntity> ProcessRequest(std::shared_ptr<HttpEntity> req);
+			void ProcessRequest(std::shared_ptr<component::HttpContext> req);
 			void AddComponent(std::shared_ptr<component::HttpComponent> component);
 		};
 	}

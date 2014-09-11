@@ -13,10 +13,10 @@ namespace tenochtitlan
 		class HttpParser
 		{
 		private:
-			std::unique_ptr<std::vector<std::string>> Split(std::string str, std::vector<char> delims);
-			std::string Trim(std::string str);
+			std::unique_ptr<std::vector<std::string>> Split(std::string &str, std::vector<char> delims);
+			std::string Trim(std::string &str);
 		public:
-			std::shared_ptr<http::HttpEntity> Parse(std::string str);
+			std::shared_ptr<http::HttpEntity> Parse(std::string &str);
 		};
 	}
 }

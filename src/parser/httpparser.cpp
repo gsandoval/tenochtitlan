@@ -8,7 +8,7 @@ namespace tenochtitlan
 	{
 		using namespace std;
 
-		shared_ptr<http::HttpEntity> HttpParser::Parse(string str)
+		shared_ptr<http::HttpEntity> HttpParser::Parse(string &str)
 		{
 			shared_ptr<http::HttpEntity> entity = make_shared<http::HttpEntity>();
 			unique_ptr<vector<string>> lines = Split(str, { 10, 13 });
@@ -45,7 +45,7 @@ namespace tenochtitlan
 			return entity;
 		}
 
-		string HttpParser::Trim(string str)
+		string HttpParser::Trim(string &str)
 		{
 			auto end = str.end();
 			auto start = str.begin();
@@ -57,7 +57,7 @@ namespace tenochtitlan
 			return string(start, end);
 		}
 
-		unique_ptr<vector<string>> HttpParser::Split(string str, vector<char> delims)
+		unique_ptr<vector<string>> HttpParser::Split(string &str, vector<char> delims)
 		{
 			unique_ptr<vector<string>> result(new vector<string>());
 			auto end = str.end();

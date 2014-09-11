@@ -1,4 +1,6 @@
 #include "http/component/staticresourcecomponent.h"
+#include <fstream>
+#include <sstream>
 
 namespace tenochtitlan
 {
@@ -8,18 +10,30 @@ namespace tenochtitlan
 		{
 			using namespace std;
 
-			StaticResourceComponent::StaticResourceComponent()
+			StaticResourceComponent::StaticResourceComponent() : base_path("")
 			{
 				logger = shared_ptr<management::Logger>(new management::Logger("StaticResourceComponent"));
 			}
 
 			void StaticResourceComponent::Execute(shared_ptr<HttpContext> ctx)
 			{
-				logger->Debug(__func__, "");
-				logger->Debug(__func__, ctx->Request()->Method());
-				logger->Debug(__func__, ctx->Request()->ResourcePath());
-				logger->Debug(__func__, ctx->Request()->Version());
-				logger->Debug(__func__, ctx->Request()->Host());
+				auto req = ctx->Request();
+				if (req->Method() == "GET" && Exists(req->ResourcePath())) {
+
+				}
+			}
+
+			bool StaticResourceComponent::Exists(string path)
+			{
+				ostringstream oss;
+				oss << base_path << path;
+				ifstream file(path);
+				return (bool)file;
+			}
+
+			void StaticResourceComponent::SetBasePath(string base_path)
+			{
+				this->base_path = base_path;
 			}
 		}
 	}

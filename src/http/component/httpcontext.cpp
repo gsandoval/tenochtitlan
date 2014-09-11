@@ -27,6 +27,16 @@ namespace tenochtitlan
 			{
 				response = res;
 			}
+
+			void HttpContext::SetConnection(shared_ptr<socket::TcpClientConnection> connection)
+			{
+				this->connection = connection;
+			}
+
+			shared_ptr<socket::TcpClientConnection> HttpContext::Connection()
+			{
+				return connection;
+			}
 		}
 	}
 }

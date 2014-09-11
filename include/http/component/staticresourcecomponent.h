@@ -15,9 +15,13 @@ namespace tenochtitlan
 			{
 			private:
 				std::shared_ptr<management::Logger> logger;
+				std::string base_path;
+
+				bool Exists(std::string path);
 			public:
 				StaticResourceComponent();
 				void Execute(std::shared_ptr<HttpContext> ctx);
+				void SetBasePath(std::string base_path);
 			};
 		}
 	}
