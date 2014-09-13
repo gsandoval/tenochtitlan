@@ -2,9 +2,11 @@
 #define _HTTP_PARSER_H_
 
 #include "http/httpentity.h"
+#include "socket/buffer.h"
 #include <string>
 #include <memory>
 #include <vector>
+#include <queue>
 
 namespace tenochtitlan
 {
@@ -12,11 +14,8 @@ namespace tenochtitlan
 	{
 		class HttpParser
 		{
-		private:
-			std::unique_ptr<std::vector<std::string>> Split(std::string &str, std::vector<char> delims);
-			std::string Trim(std::string &str);
 		public:
-			std::shared_ptr<http::HttpEntity> Parse(std::string &str);
+			std::shared_ptr<socket::Buffer> Parse(std::queue<std::shared_ptr<socket::Buffer>> &buffers, std::shared_ptr<http::HttpEntity>);
 		};
 	}
 }

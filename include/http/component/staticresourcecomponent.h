@@ -17,7 +17,7 @@ namespace tenochtitlan
 				std::shared_ptr<management::Logger> logger;
 				std::string base_path;
 
-				bool Exists(std::string path);
+				bool Exists(const std::string &path);
 			public:
 				StaticResourceComponent();
 				void Execute(std::shared_ptr<HttpContext> ctx);

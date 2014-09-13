@@ -15,7 +15,6 @@ namespace tenochtitlan
 
 			void RestComponent::Execute(shared_ptr<HttpContext> ctx)
 			{
-				logger->Debug(__func__, "");
 				logger->Debug(__func__, ctx->Request()->Method());
 				logger->Debug(__func__, ctx->Request()->ResourcePath());
 				logger->Debug(__func__, ctx->Request()->Version());

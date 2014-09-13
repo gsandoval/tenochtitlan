@@ -79,6 +79,19 @@ namespace tenochtitlan
 			return local_copy;
 		}
 
+		void TcpClientConnection::RequeueBuffer(shared_ptr<Buffer> buffer)
+		{
+			unique_lock<mutex> lk(read_queue_mutex);
+			queue<shared_ptr<Buffer>> new_queue;
+			new_queue.push(buffer);
+			while (!read_queue.empty()) {
+				new_queue.push(read_queue.front());
+				read_queue.pop();
+			}
+			read_queue = new_queue;
+			lk.unlock();
+		}
+
 		queue<shared_ptr<Buffer>> TcpClientConnection::ReadOrWait(int time_in_millis)
 		{
 			unique_lock<mutex> lk(read_queue_mutex);

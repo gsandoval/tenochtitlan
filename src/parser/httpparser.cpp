@@ -8,84 +8,112 @@ namespace tenochtitlan
 	{
 		using namespace std;
 
-		shared_ptr<http::HttpEntity> HttpParser::Parse(string &str)
+		shared_ptr<socket::Buffer> HttpParser::Parse(queue<shared_ptr<socket::Buffer>> &buffers, shared_ptr<http::HttpEntity> entity)
 		{
-			shared_ptr<http::HttpEntity> entity = make_shared<http::HttpEntity>();
-			unique_ptr<vector<string>> lines = Split(str, { 10, 13 });
+			static char LF = 10;
+			static char CR = 13;
 
-			if (lines->size() > 0) {
-				unique_ptr<vector<string>> tokens = Split(lines->at(0), { ' ' });
-				if (tokens->size() == 3) {
-					entity->SetMethod(tokens->at(0));
-					entity->SetResourcePath(tokens->at(1));
-					entity->SetVersion(tokens->at(2));
-				}
+			int curr_line = 0;
+			string name, value;
+
+			int buffer_size = 0;
+			char *buffer;
+
+			queue<shared_ptr<socket::Buffer>> copy = buffers;
+			while (!copy.empty()) {
+				buffer_size += copy.front()->Size();
+				copy.pop();
 			}
-			for (unsigned int i = 1; i < lines->size(); i++) {
-				auto start = lines->at(i).begin();
-				auto end = lines->at(i).end();
-				string header_name;
-				string header_value;
-				bool valid = false;
-				for (auto it = start; it != end; ++it) {
-					if (*it == ':') {
-						header_name = string(start, it);
-						header_value = Trim(string(it + 1, end));
-						valid = true;
+
+			int offset = 0;
+			buffer = new char[buffer_size];
+			while (!buffers.empty()) {
+				memcpy(buffer + offset, buffers.front()->Buf(), buffers.front()->Size());
+				offset += buffers.front()->Size();
+				buffers.pop();
+			}
+			
+			int token_count = 0;
+			int* starts = new int[3];
+			int* ends = new int[3];
+
+			int last_pos_processed = 0;
+			bool token_s_found = false;
+			int consecutive_lf = 0;
+			for (int j = 0; j < buffer_size; j++) {
+				if (buffer[j] == LF || buffer[j] == CR) {
+					if (buffer[j] == LF) {
+						consecutive_lf++;
+					}
+
+					if (consecutive_lf >= 2) {
 						break;
 					}
-				}
-				if (valid) {
-					if (header_name == "Host")
-						entity->SetHost(header_value);
-					else
-						entity->AddHeader(header_name, header_value);
+
+					if (token_s_found) {
+						token_s_found = false;
+						ends[token_count++] = j;
+					}
+
+					if (token_count == 0)
+						continue;
+
+					if (curr_line == 0 && token_count == 3) {
+						entity->SetMethod(string(buffer + starts[0], buffer + ends[0]));
+						entity->SetResourcePath(string(buffer + starts[1], buffer + ends[1]));
+						entity->SetVersion(string(buffer + starts[2], buffer + ends[2]));
+						last_pos_processed = ends[2] + 1;
+					} else if (curr_line > 0 && token_count == 2) {
+						entity->AddHeader(string(buffer + starts[0], buffer + ends[0]), string(buffer + starts[1], buffer + ends[1]));
+						last_pos_processed = ends[1] + 1;
+					}
+
+					token_count = 0;
+					curr_line++;
+				} else if (curr_line == 0) {
+					consecutive_lf = 0;
+					if (buffer[j] == ' ') {
+						if (token_s_found && token_count < 2) {
+							token_s_found = false;
+							ends[token_count++] = j;
+						}
+					} else {
+						if (!token_s_found) {
+							token_s_found = true;
+							starts[token_count] = j;
+						}
+					}
+				} else {
+					consecutive_lf = 0;
+					if (buffer[j] == ' ' || buffer[j] == ':') {
+						if (token_s_found && token_count < 1) {
+							token_s_found = false;
+							ends[token_count++] = j;
+						}
+					} else {
+						if (!token_s_found) {
+							token_s_found = true;
+							starts[token_count] = j;
+						}
+					}
 				}
 			}
-			return entity;
-		}
 
-		string HttpParser::Trim(string &str)
-		{
-			auto end = str.end();
-			auto start = str.begin();
+			delete starts;
+			delete ends;
 
-			start = find_if_not(start, end, [&](char &c) -> bool 
-				{
-					return c == ' ';
-				});
-			return string(start, end);
-		}
+			shared_ptr<socket::Buffer> buff;
 
-		unique_ptr<vector<string>> HttpParser::Split(string &str, vector<char> delims)
-		{
-			unique_ptr<vector<string>> result(new vector<string>());
-			auto end = str.end();
-			auto curr = str.begin();
-			while (curr != end) {
-				curr = find_if_not(curr, end, [&](char &c) -> bool 
-					{
-						for (unsigned int i = 0; i < delims.size(); i++)
-							if (delims[i] == c)
-								return true;
-						return false;
-					});
-
-				if (curr == end)
-					break;
-
-				auto pivot = find_if(curr, end, [&](char &c) -> bool
-					{
-						for (unsigned int i = 0; i < delims.size(); i++)
-							if (delims[i] == c)
-								return true;
-						return false;
-					});
-
-				result->push_back(string(curr, pivot));
-				curr = pivot;
+			int remaining_byte_number = buffer_size - last_pos_processed;
+			if (remaining_byte_number > 0) {
+				char *remaining_bytes = new char[remaining_byte_number];
+				buff = shared_ptr<socket::Buffer>(new socket::Buffer(remaining_bytes, remaining_byte_number));
+			} else {
+				buff = shared_ptr<socket::Buffer>(new socket::Buffer());
 			}
-			return result;
+
+			return buff;
 		}
+
 	}
 }

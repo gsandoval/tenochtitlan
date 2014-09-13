@@ -44,6 +44,7 @@ namespace tenochtitlan
 			void DoWrite();
 			void SignalEvent(int socket_fd, int revents);
 			bool IsClosed();
+			void RequeueBuffer(std::shared_ptr<Buffer>);
 
 			friend void native_callback(struct ev_loop *loop, ev_io *w, int revents);
 		};

@@ -16,15 +16,14 @@ namespace tenochtitlan
 
 		void HttpSocketServerWorker::Execute()
 		{
-			string req_str = "";
 			queue<shared_ptr<socket::Buffer>> buffers_read = client->ReadOrWait(10000);
-			while (!buffers_read.empty()) {
-				req_str.append(buffers_read.front()->Buf(), buffers_read.front()->Size());
-				buffers_read.pop();
-			}
 
 			auto parser = make_shared<parser::HttpParser>();
-			shared_ptr<http::HttpEntity> http_request = parser->Parse(req_str);
+			auto http_request = make_shared<http::HttpEntity>();
+			auto bytes_left = parser->Parse(buffers_read, http_request);
+			if (bytes_left->Size() > 0) {
+				client->RequeueBuffer(bytes_left);
+			}
 
 			auto context = make_shared<component::HttpContext>();
 			context->SetRequest(http_request);

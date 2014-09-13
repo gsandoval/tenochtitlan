@@ -4,7 +4,7 @@ namespace tenochtitlan
 {
 	namespace socket
 	{
-		Buffer::Buffer()
+		Buffer::Buffer() : buf(0), buffer_size(0)
 		{
 
 		}
@@ -16,6 +16,8 @@ namespace tenochtitlan
 
 		Buffer::~Buffer()
 		{
+			if (buf)
+				delete buf;
 		}
 
 		char* Buffer::Buf()

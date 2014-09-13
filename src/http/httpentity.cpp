@@ -53,6 +53,9 @@ namespace tenochtitlan
 		
 		void HttpEntity::AddHeader(string name, string value)
 		{
+			if (name == "Host")
+				host = value;
+
 			headers.push_back(make_pair(name, value));
 		}
 	}
