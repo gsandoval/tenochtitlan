@@ -3,6 +3,7 @@
 #include "http/httpsocketserverworkercreator.h"
 #include "http/component/staticresourcecomponent.h"
 #include "http/component/restcomponent.h"
+#include "http/component/inputvalidationcomponent.h"
 
 namespace tenochtitlan
 {
@@ -14,8 +15,10 @@ namespace tenochtitlan
 		{
 			auto static_resource_component = make_shared<component::StaticResourceComponent>();
 			auto rest_component = make_shared<component::RestComponent>();
+			auto input_validation_component = make_shared<component::InputValidationComponent>();
 
 			auto request_processor = make_shared<HttpRequestProcessor>();
+			request_processor->AddComponent(input_validation_component);
 			request_processor->AddComponent(static_resource_component);
 			request_processor->AddComponent(rest_component);
 

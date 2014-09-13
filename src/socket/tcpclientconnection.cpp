@@ -57,6 +57,8 @@ namespace tenochtitlan
 
 		void TcpClientConnection::Close()
 		{
+			this_thread::sleep_for(chrono::milliseconds(1000));
+
 			unique_lock<mutex> lk(closed_mutex);
 			if (!closed) {
 				closed = true;
@@ -111,6 +113,29 @@ namespace tenochtitlan
 			write_queue.push(buffer);
 			UpdateEvents(); // Must be sync with the write_queue lock
 			lk.unlock();
+
+			DoWrite(); // FIXME: WRONG WRONG WRONG Why is the write event not being called from libev
+		}
+
+		void TcpClientConnection::Write(shared_ptr<Buffer> buffer)
+		{
+			unique_lock<mutex> lk(write_queue_mutex);
+			write_queue.push(buffer);
+			UpdateEvents(); // Must be sync with the write_queue lock
+			lk.unlock();
+
+			DoWrite(); // FIXME: WRONG WRONG WRONG Why is the write event not being called from libev
+		}
+
+		void TcpClientConnection::Write(string str)
+		{
+			shared_ptr<Buffer> buffer(new Buffer(str));
+			unique_lock<mutex> lk(write_queue_mutex);
+			write_queue.push(buffer);
+			UpdateEvents(); // Must be sync with the write_queue lock
+			lk.unlock();
+
+			DoWrite(); // FIXME: WRONG WRONG WRONG Why is the write event not being called from libev
 		}
 
 		void TcpClientConnection::SignalEvent(int socket_fd, int revents)
@@ -121,14 +146,16 @@ namespace tenochtitlan
 				return;
 			}
 			bool close_requested = false;
+			if (revents & EV_WRITE) 
+                DoWrite();
 			if (revents & EV_READ) 
                 close_requested = DoRead();
-            if (revents & EV_WRITE) 
-                DoWrite();
             lk.unlock();
 
-            if (close_requested)
+            if (close_requested) {
+            	logger->Warn(__func__, "Closing socket due to a false read operation");
             	Close();
+            }
 		}
 
 		bool TcpClientConnection::IsClosed()
@@ -176,6 +203,7 @@ namespace tenochtitlan
 
 		void TcpClientConnection::DoWrite()
 		{
+			logger->Debug(__func__, "Writing...");
 			unique_lock<mutex> lk(write_queue_mutex);
 			while (!write_queue.empty()) {
 				shared_ptr<Buffer> buffer = write_queue.front();
@@ -194,6 +222,7 @@ namespace tenochtitlan
 			if (write_queue.empty()) {
                 ev_io_set(io, socket_fd, EV_READ);
             } else {
+            	logger->Debug(__func__, "Requesting write");
             	ev_io_set(io, socket_fd, EV_READ | EV_WRITE);
             }
 		}

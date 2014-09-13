@@ -8,6 +8,11 @@ namespace tenochtitlan
 		{
 			using namespace std;
 
+			HttpContext::HttpContext()
+			{
+				properties = make_shared<util::Properties>();
+			}
+
 			shared_ptr<HttpEntity> HttpContext::Request()
 			{
 				return request;
@@ -36,6 +41,11 @@ namespace tenochtitlan
 			shared_ptr<socket::TcpClientConnection> HttpContext::Connection()
 			{
 				return connection;
+			}
+
+			shared_ptr<util::Properties> HttpContext::Properties()
+			{
+				return properties;
 			}
 		}
 	}

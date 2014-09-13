@@ -15,6 +15,10 @@ namespace tenochtitlan
 
 			void RestComponent::Execute(shared_ptr<HttpContext> ctx)
 			{
+				auto props = ctx->Properties();
+				if (!props->GetBool("t:IsValid") || props->GetBool("t:IsHandled"))
+					return;
+				
 				logger->Debug(__func__, ctx->Request()->Method());
 				logger->Debug(__func__, ctx->Request()->ResourcePath());
 				logger->Debug(__func__, ctx->Request()->Version());

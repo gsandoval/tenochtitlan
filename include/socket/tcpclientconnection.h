@@ -40,6 +40,8 @@ namespace tenochtitlan
 			std::queue<std::shared_ptr<Buffer>> Read();
 			std::queue<std::shared_ptr<Buffer>> ReadOrWait(int time_in_millis);
 			void Write(char *buf, int buffer_size);
+			void Write(std::shared_ptr<Buffer> buffer);
+			void Write(std::string str);
 			bool DoRead();
 			void DoWrite();
 			void SignalEvent(int socket_fd, int revents);

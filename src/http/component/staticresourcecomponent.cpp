@@ -1,4 +1,5 @@
 #include "http/component/staticresourcecomponent.h"
+#include "socket/buffer.h"
 #include <fstream>
 #include <sstream>
 #include <cstdio>
@@ -18,7 +19,12 @@ namespace tenochtitlan
 
 			void StaticResourceComponent::Execute(shared_ptr<HttpContext> ctx)
 			{
+				auto props = ctx->Properties();
+				if (!props->GetBool("t:IsValid") || props->GetBool("t:IsHandled"))
+					return;
+
 				auto req = ctx->Request();
+				auto res = ctx->Response();
 
 				ostringstream oss;
 				oss << "." << base_path << req->ResourcePath();
@@ -33,11 +39,23 @@ namespace tenochtitlan
 					file.seekg(0, ios::beg);
 
 					char *file_bytes = new char[size];
-					if (file.read(file_bytes, size)) {
-					    logger->Debug(__func__, string(file_bytes));
+					if (!file.read(file_bytes, size)) {
+					    delete file_bytes;
 					}
+					auto buffer = shared_ptr<socket::Buffer>(new socket::Buffer(file_bytes, size));
 
-					delete file_bytes;
+					res->SetContent(buffer);
+
+					props->Set("t:IsHandled", true);
+					props->Set("t:HandledBy", "static_resource_component");
+
+					res->SetCode(200);
+					res->SetCodeStr("OK");
+
+					oss = ostringstream();
+					oss << buffer->Size();
+					res->AddHeader("Content-Type", "text/html");
+					res->AddHeader("Content-Length", oss.str());
 				}
 			}
 

@@ -1,6 +1,8 @@
 #ifndef _BUFFER_H_
 #define _BUFFER_H_
 
+#include <string>
+
 namespace tenochtitlan
 {
 	namespace socket 
@@ -13,6 +15,7 @@ namespace tenochtitlan
 		public:
 			Buffer();
 			Buffer(char *buf, int buffer_size);
+			Buffer(std::string);
 			~Buffer();
 
 			char* Buf();

@@ -15,7 +15,8 @@ _DEPS = management/logger.h management/disposable.h management/applicationlifecy
 	server/socketserverthread.h parser/jsonparser.h parser/httpparser.h http/httpserver.h \
 	http/httprequestprocessor.h http/httpentity.h http/httpsocketserverworkercreator.h \
 	http/component/httpcomponent.h http/component/httpcomponentfactory.h http/component/httpcontext.h \
-	http/component/restcomponent.h http/component/staticresourcecomponent.h
+	http/component/restcomponent.h http/component/staticresourcecomponent.h util/properties.h \
+	http/component/inputvalidationcomponent.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
 _OBJS = management/logger.o management/applicationlifecyclelistener.o socket/buffer.o socket/socketexception.o socket/tcpsocket.o \
@@ -24,7 +25,8 @@ _OBJS = management/logger.o management/applicationlifecyclelistener.o socket/buf
 	server/rawsocketserverworker.o server/socketserverthread.o parser/jsonparser.o parser/httpparser.o \
 	http/httpserver.o http/httprequestprocessor.o http/httpentity.o http/httpsocketserverworkercreator.o \
 	http/component/httpcomponent.o http/component/httpcomponentfactory.o http/component/httpcontext.o \
-	http/component/restcomponent.o http/component/staticresourcecomponent.o
+	http/component/restcomponent.o http/component/staticresourcecomponent.o util/properties.o \
+	http/component/inputvalidationcomponent.o
 OBJS = $(patsubst %,$(ODIR)/%,$(_OBJS))
 
 $(ODIR)/%.o: src/%.cpp $(DEPS)

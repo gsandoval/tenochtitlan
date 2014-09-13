@@ -2,6 +2,7 @@
 #include "parser/httpparser.h"
 #include <string>
 #include <queue>
+#include <sstream>
 
 namespace tenochtitlan
 {
@@ -31,6 +32,27 @@ namespace tenochtitlan
 			context->SetConnection(client);
 
 			request_processor->ProcessRequest(context);
+			auto props = context->Properties();
+			if (props->GetBool("t:IsHandled")) {
+				auto response = context->Response();
+				//response->AddHeader("Transfer-Encoding", "chunked");
+
+				ostringstream oss;
+				oss << response->Version() << " " << response->Code() << " " << response->CodeStr() << "\n\r";
+
+				auto header_names = response->HeaderNames();
+				for (unsigned int i = 0; i < header_names.size(); i++) {
+					oss << header_names[i] << ": " << response->Header(header_names[i]) << "\n\r";
+				}
+				oss << "\n\r";
+				client->Write(oss.str());
+
+				auto content = response->ContentAsBuffer();
+				oss = ostringstream();
+				oss << "content size " << content->Size();
+				logger->Debug(__func__, oss.str());
+				client->Write(content);
+			}
 
 			client->Close();
 		}
