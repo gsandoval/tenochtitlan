@@ -1,0 +1,162 @@
+body {
+	background: url('../images/Mexico-City-Mexico.jpg') no-repeat center center fixed;
+	padding: 0;
+	font-family: 'Lato', sans-serif;
+	font-size: 18px;
+	margin: 0;
+	background-size: cover;
+	position: relative;
+}
+
+.gradient-overlay {
+	width: 100%;
+	height: 100%;
+	top: 0;
+	left: 0;
+	position: absolute;
+	z-index: -1;
+
+	background: -moz-linear-gradient(top,  rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.35) 1%, rgba(0,0,0,0.7) 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(0,0,0,0.35)), color-stop(1%,rgba(0,0,0,0.35)), color-stop(100%,rgba(0,0,0,0.7))); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top,  rgba(0,0,0,0.35) 0%,rgba(0,0,0,0.35) 1%,rgba(0,0,0,0.7) 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top,  rgba(0,0,0,0.35) 0%,rgba(0,0,0,0.35) 1%,rgba(0,0,0,0.7) 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top,  rgba(0,0,0,0.35) 0%,rgba(0,0,0,0.35) 1%,rgba(0,0,0,0.7) 100%); /* IE10+ */
+	background: linear-gradient(to bottom,  rgba(0,0,0,0.35) 0%,rgba(0,0,0,0.35) 1%,rgba(0,0,0,0.7) 100%); /* W3C */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#40000000', endColorstr='#000000',GradientType=0 ); /* IE6-9 */
+}
+
+.content {
+	color: #FFFFFF;
+	margin: 0 auto;
+	width: 30em;
+}
+
+.abstract {
+	background: rgba(0, 0, 0, 0.6);
+	padding: 1em 2.2em;
+	margin: 1em 0 0;
+	letter-spacing: 0.03em;
+	line-height: 1.6em;
+}
+
+.header {
+}
+
+.header .name {
+	font-family: 'Open Sans', sans-serif;
+	font-weight: 800;
+	letter-spacing: 0.03em;
+	font-size: 1.8em;
+	text-align: center;
+	text-transform: uppercase;
+}
+
+.code {
+	padding: 3em 0 2em;
+	width: 18em;
+	margin: 0 auto;
+}
+
+.code p {
+	margin: 0;
+	font-family: 'Inconsolata', monospace;
+	font-weight: 100;
+	font-size: 0.9em;
+}
+
+.highlight {
+	color: #AAFF00;
+}
+
+.signature {
+	font-style: italic;
+}
+
+.signature .social-links {
+	float: right;
+	font-size: 1.4em;
+}
+
+.signature .social-links a {
+	color: white;
+	text-decoration: none;
+}
+
+@media only screen and (-webkit-min-device-pixel-ratio: 1.5) and (max-device-width: 520px), 
+	only screen and (min--moz-device-pixel-ratio: 1.5) and (max-device-width: 520px), 
+	only screen and (min-device-pixel-ratio: 1.5) and (max-device-width: 520px) {
+
+    body {
+		font-size: 55px;
+	}
+
+	.header {
+		display: none;
+	}
+
+	.abstract {
+		padding: .3em 1em;
+		margin: 0 0;
+		letter-spacing: 0.03em;
+		line-height: 1.6em;
+	}
+
+	.content {
+		margin: 0 auto;
+		width: 15em;
+		padding: 7em 0 0;
+	}
+}
+
+@media only screen and (-webkit-min-device-pixel-ratio: 1.5) and (max-device-width: 520px) and (orientation : landscape), 
+	only screen and (min--moz-device-pixel-ratio: 1.5) and (max-device-width: 520px) and (orientation : landscape), 
+	only screen and (min-device-pixel-ratio: 1.5) and (max-device-width: 520px) and (orientation : landscape) {
+
+    body {
+		font-size: 30px;
+	}
+
+	.header {
+		display: none;
+	}
+
+	.abstract {
+		padding: .3em 1em;
+		margin: 0 auto;
+		letter-spacing: 0.03em;
+		line-height: 1.6em;
+	}
+
+	.content {
+		margin: 0 auto;
+		width: 25em;
+		padding: 3em 0 0;
+	}
+}
+
+@media only screen and (min-device-width: 320px) and (max-device-width: 480px) and (-webkit-device-pixel-ratio: 2) and (device-aspect-ratio: 2/3) {
+    body {
+		overflow: hidden;
+	}
+
+	.header {
+		display: none;
+	}
+
+	.abstract {
+		padding: .3em 1em;
+		margin: 0;
+		letter-spacing: 0.03em;
+		line-height: 1.6em;
+	}
+
+	.content {
+		margin: 0 auto;
+		width: 15em;
+		padding: 7em 0 0;
+	}
+}
+
+
+
+

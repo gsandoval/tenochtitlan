@@ -24,6 +24,7 @@ namespace tenochtitlan
 				auto req = ctx->Request();
 				auto res = ctx->Response();
 				res->SetVersion(req->Version());
+				res->AddHeader("Server", "tenochtitlan/0.1");
 
 				props->Set("t:IsValid", true);
 			}

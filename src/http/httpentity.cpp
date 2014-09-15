@@ -1,4 +1,5 @@
 #include "http/httpentity.h"
+#include <sstream>
 
 namespace tenochtitlan
 {
@@ -86,6 +87,15 @@ namespace tenochtitlan
 			content = buffer;
 		}
 
+		void HttpEntity::SetContent(shared_ptr<content::HttpContent> content)
+		{
+			this->content = content->Buffer();
+			ostringstream oss;
+			oss << content->Buffer()->Size();
+			AddHeader("Content-Type", content->Mime());
+			AddHeader("Content-Length", oss.str());
+		}
+
 		shared_ptr<socket::Buffer> HttpEntity::ContentAsBuffer()
 		{
 			return content;
@@ -100,6 +110,21 @@ namespace tenochtitlan
 			string t = string(buf);
 			delete buf;
 			return t;
+		}
+
+		shared_ptr<socket::Buffer> HttpEntity::HeaderAsBuffer()
+		{
+			ostringstream oss;
+			
+			oss << version << " " << code << " " << code_str << "\n\r";
+
+			for (unsigned int i = 0; i < headers.size(); i++) {
+				oss << headers[i].first << ": " << headers[i].second << "\n\r";
+			}
+
+			oss << "\n\r";
+
+			return shared_ptr<socket::Buffer>(new socket::Buffer(oss.str()));
 		}
 
 		int HttpEntity::Code()

@@ -1,8 +1,8 @@
 #include "http/component/staticresourcecomponent.h"
 #include "socket/buffer.h"
-#include <fstream>
+#include "http/content/httpfilecontent.h"
+#include "util/filereadercache.h"
 #include <sstream>
-#include <cstdio>
 
 namespace tenochtitlan
 {
@@ -30,65 +30,21 @@ namespace tenochtitlan
 				oss << "." << base_path << req->ResourcePath();
 				string resource_path = oss.str();
 
-				if (req->Method() == "GET" && Exists(resource_path)) {
-					ifstream f(req->ResourcePath());
+				auto file_cache = util::FileReaderCache::Instance();
 
-					ifstream file(resource_path, ios::binary);
-					file.seekg(0, ios::end);
-					streamsize size = file.tellg();
-					file.seekg(0, ios::beg);
-
-					char *file_bytes = new char[size];
-					if (!file.read(file_bytes, size)) {
-					    delete file_bytes;
-					}
-					auto buffer = shared_ptr<socket::Buffer>(new socket::Buffer(file_bytes, size));
-
-					res->SetContent(buffer);
+				if (req->Method() == "GET" && file_cache->Exists(resource_path)) {
+					auto file_content = file_cache->GetFile(resource_path);
+					oss = ostringstream();
+					oss << "file size to queue " << file_content->Buffer()->Size();
+					logger->Debug(__func__, oss.str());
+					res->SetContent(file_content);
 
 					props->Set("t:IsHandled", true);
 					props->Set("t:HandledBy", "static_resource_component");
 
 					res->SetCode(200);
 					res->SetCodeStr("OK");
-
-					oss = ostringstream();
-					oss << buffer->Size();
-					res->AddHeader("Content-Type", "text/html");
-					res->AddHeader("Content-Length", oss.str());
 				}
-			}
-
-			bool StaticResourceComponent::Exists(const string &path)
-			{
-				if (FILE *file = fopen(path.c_str(), "r")) {
-					fclose(file);
-					return true;
-			    } else {
-			        return false;
-			    }
-			    /*
-			    struct stat s;
-				if( stat(path,&s) == 0 )
-				{
-				    if( s.st_mode & S_IFDIR )
-				    {
-				        //it's a directory
-				    }
-				    else if( s.st_mode & S_IFREG )
-				    {
-				        //it's a file
-				    }
-				    else
-				    {
-				        //something else
-				    }
-				}
-				else
-				{
-				    //error
-				}
-			    */
 			}
 
 			void StaticResourceComponent::SetBasePath(string base_path)

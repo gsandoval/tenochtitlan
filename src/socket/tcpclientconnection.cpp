@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <netinet/tcp.h>
 
 namespace tenochtitlan
 {
@@ -44,6 +45,15 @@ namespace tenochtitlan
 				throw SocketException("Could not accept connection");
 			//printf("New connection from %s on socket %d\n", inet_ntoa(clientaddr.sin_addr), socket_fd);
 
+			int flag = 1;
+			int result = setsockopt(socket_fd, SOL_SOCKET, TCP_NODELAY, (char *) &flag, sizeof(int));
+
+			struct linger linger = { 0 };
+			linger.l_onoff = 1;
+			linger.l_linger = 30;
+
+			result = setsockopt(socket_fd, SOL_SOCKET, SO_LINGER, (const char *) &linger, sizeof(linger));
+
 			fcntl(socket_fd, F_SETFL, fcntl(socket_fd, F_GETFL, 0) | O_NONBLOCK);
 
 			ev_io_init(io, native_callback, socket_fd, EV_READ);
@@ -57,7 +67,7 @@ namespace tenochtitlan
 
 		void TcpClientConnection::Close()
 		{
-			this_thread::sleep_for(chrono::milliseconds(1000));
+			logger->Debug(__func__, "Closing socket!");
 
 			unique_lock<mutex> lk(closed_mutex);
 			if (!closed) {
@@ -65,6 +75,7 @@ namespace tenochtitlan
 
 				ev_io_stop(loop, io);
 
+				shutdown(socket_fd, SHUT_RDWR);
 				close(socket_fd);
 
 				ev_break(loop);
@@ -208,9 +219,18 @@ namespace tenochtitlan
 			while (!write_queue.empty()) {
 				shared_ptr<Buffer> buffer = write_queue.front();
 				write_queue.pop();
-				int bytes_sent = send(socket_fd, buffer->Buf(), buffer->Size(), 0);
-				if (bytes_sent == -1)
-					throw SocketException("Error writing buffer to client");
+
+				char *buf = buffer->Buf();
+				int left = buffer->Size();
+
+				while (left > 0) {
+					int bytes_sent = send(socket_fd, buf, left, 0);
+					left -= bytes_sent;
+					buf += bytes_sent;
+
+					if (bytes_sent == -1)
+						throw SocketException("Error writing buffer to client");
+				}
 			}
 
 			UpdateEvents(); // Must be sync with the write_queue lock

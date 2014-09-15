@@ -2,6 +2,7 @@
 #define _HTTP_ENTITY_H_
 
 #include "socket/buffer.h"
+#include "content/httpcontent.h"
 #include <string>
 #include <utility>
 #include <vector>
@@ -34,8 +35,10 @@ namespace tenochtitlan
 			void AddHeader(std::string name, std::string value);
 			void SetContent(std::string);
 			void SetContent(std::shared_ptr<socket::Buffer> buffer);
+			void SetContent(std::shared_ptr<content::HttpContent> content);
 			std::shared_ptr<socket::Buffer> ContentAsBuffer();
 			std::string ContentAsString();
+			std::shared_ptr<socket::Buffer> HeaderAsBuffer();
 			std::vector<std::string> HeaderNames();
 			int Code();
 			void SetCode(int code);
