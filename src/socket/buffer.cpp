@@ -39,5 +39,17 @@ namespace tenochtitlan
 		{
 			return buffer_size;
 		}
+
+		void Buffer::Append(shared_ptr<Buffer> b)
+		{
+			int new_size = b->Size() + buffer_size;
+			char *new_buffer = new char[new_size];
+			memcpy(new_buffer, buf, buffer_size);
+			memcpy(new_buffer + buffer_size, b->Buf(), b->Size());
+
+			delete buf;
+			buf = new_buffer;
+			buffer_size = new_size;
+		}
 	}
 }

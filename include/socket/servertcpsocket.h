@@ -7,7 +7,7 @@
 #include "management/disposable.h"
 #include "management/logger.h"
 
-#include <ev.h>
+#include <uv.h>
 
 #include <string>
 #include <vector>
@@ -21,8 +21,9 @@ namespace tenochtitlan
 		class ServerTcpSocket : public TcpSocket, public management::Disposable
 		{
 		private:
-			ev_io *io;
-			struct ev_loop *loop;
+			uv_loop_t loop;
+			uv_tcp_t *server;
+
 			bool listening;
 			bool stopped;
 			int master_socket;

@@ -22,9 +22,10 @@ namespace tenochtitlan
 		ServerTcpSocket::ServerTcpSocket() : listening(false), stopped(false)
 		{
 			logger = shared_ptr<management::Logger>(new management::Logger("ServerTcpSocket"));
-			loop = ev_default_loop(0);
-			ev_set_userdata(loop, this);
-			io = new ev_io();
+			loop = uv_default_loop();
+			server = new uv_tcp_t();
+			uv_tcp_init(loop, server);
+			server->data = this;
 		}
 
 		ServerTcpSocket::~ServerTcpSocket()

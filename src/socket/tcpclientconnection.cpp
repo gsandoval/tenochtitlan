@@ -20,19 +20,21 @@ namespace tenochtitlan
 		{
 			logger = shared_ptr<management::Logger>(new management::Logger("TcpClientConnection"));
 			loop = ev_loop_new(EVFLAG_AUTO);
-			ev_set_userdata(loop, this);
-			io = new ev_io();
+			ev_set_userdata(EV_A_ this);
+			read_watch = new ev_io();
+			write_watch = new ev_io();
 		}
 
 		TcpClientConnection::~TcpClientConnection()
 		{
-			delete io;
-			ev_loop_destroy(loop);
+			delete read_watch;
+			delete write_watch;
+			ev_loop_destroy(EV_A);
 		}
 
-		void native_callback(struct ev_loop *loop, ev_io *w, int revents)
+		void native_callback(EV_P_ ev_io *w, int revents)
 		{
-			void *data = ev_userdata(loop);
+			void *data = ev_userdata(EV_A);
 			TcpClientConnection *conn = (TcpClientConnection *)data;
 			conn->SignalEvent(w->fd, revents);
 		}
@@ -43,24 +45,27 @@ namespace tenochtitlan
 			socket_fd = ::accept(master_socket, (struct sockaddr *)&clientaddr, &addrlen);
 			if (socket_fd == -1)
 				throw SocketException("Could not accept connection");
-			//printf("New connection from %s on socket %d\n", inet_ntoa(clientaddr.sin_addr), socket_fd);
 
+			/*
 			int flag = 1;
 			int result = setsockopt(socket_fd, SOL_SOCKET, TCP_NODELAY, (char *) &flag, sizeof(int));
 
+			
 			struct linger linger = { 0 };
 			linger.l_onoff = 1;
 			linger.l_linger = 30;
 
 			result = setsockopt(socket_fd, SOL_SOCKET, SO_LINGER, (const char *) &linger, sizeof(linger));
+			*/
 
 			fcntl(socket_fd, F_SETFL, fcntl(socket_fd, F_GETFL, 0) | O_NONBLOCK);
 
-			ev_io_init(io, native_callback, socket_fd, EV_READ);
-			ev_io_start(loop, io);
+			ev_io_init(read_watch, native_callback, socket_fd, EV_READ);
+			ev_io_init(write_watch, native_callback, socket_fd, EV_WRITE);
+			ev_io_start(EV_A_ read_watch);
 
 			thread t = thread([&] {
-				ev_run(loop, 0);
+				ev_run(EV_A_ 0);
 			});
 			t.detach();
 		}
@@ -68,17 +73,19 @@ namespace tenochtitlan
 		void TcpClientConnection::Close()
 		{
 			logger->Debug(__func__, "Closing socket!");
+			this_thread::sleep_for(chrono::milliseconds(1000));
 
 			unique_lock<mutex> lk(closed_mutex);
 			if (!closed) {
 				closed = true;
 
-				ev_io_stop(loop, io);
+				ev_io_stop(EV_A_ read_watch);
+				ev_io_stop(EV_A_ write_watch);
 
 				shutdown(socket_fd, SHUT_RDWR);
 				close(socket_fd);
 
-				ev_break(loop);
+				ev_break(EV_A);
 			}
 			lk.unlock();
 		}
@@ -125,7 +132,7 @@ namespace tenochtitlan
 			UpdateEvents(); // Must be sync with the write_queue lock
 			lk.unlock();
 
-			DoWrite(); // FIXME: WRONG WRONG WRONG Why is the write event not being called from libev
+			//DoWrite(); // FIXME: WRONG WRONG WRONG Why is the write event not being called from libev
 		}
 
 		void TcpClientConnection::Write(shared_ptr<Buffer> buffer)
@@ -135,7 +142,7 @@ namespace tenochtitlan
 			UpdateEvents(); // Must be sync with the write_queue lock
 			lk.unlock();
 
-			DoWrite(); // FIXME: WRONG WRONG WRONG Why is the write event not being called from libev
+			//DoWrite(); // FIXME: WRONG WRONG WRONG Why is the write event not being called from libev
 		}
 
 		void TcpClientConnection::Write(string str)
@@ -146,7 +153,7 @@ namespace tenochtitlan
 			UpdateEvents(); // Must be sync with the write_queue lock
 			lk.unlock();
 
-			DoWrite(); // FIXME: WRONG WRONG WRONG Why is the write event not being called from libev
+			//DoWrite(); // FIXME: WRONG WRONG WRONG Why is the write event not being called from libev
 		}
 
 		void TcpClientConnection::SignalEvent(int socket_fd, int revents)
@@ -228,8 +235,16 @@ namespace tenochtitlan
 					left -= bytes_sent;
 					buf += bytes_sent;
 
-					if (bytes_sent == -1)
+					ostringstream oss;
+					oss << "bytes sent " << bytes_sent;
+					logger->Debug(__func__, oss.str());
+
+					if (bytes_sent == -1) {
+						oss = ostringstream();
+						oss << "Error sending data, errno: " << errno;
+						logger->Error(__func__, oss.str());
 						throw SocketException("Error writing buffer to client");
+					}
 				}
 			}
 
@@ -240,10 +255,12 @@ namespace tenochtitlan
 		void TcpClientConnection::UpdateEvents()
 		{
 			if (write_queue.empty()) {
-                ev_io_set(io, socket_fd, EV_READ);
+				ev_io_stop(EV_A_ write_watch);
+                //ev_io_set(io, socket_fd, EV_READ);
             } else {
             	logger->Debug(__func__, "Requesting write");
-            	ev_io_set(io, socket_fd, EV_READ | EV_WRITE);
+            	ev_io_start(EV_A_ write_watch);
+            	//ev_io_set(io, socket_fd, EV_READ | EV_WRITE);
             }
 		}
 	}

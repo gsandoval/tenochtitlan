@@ -2,6 +2,7 @@
 #define _BUFFER_H_
 
 #include <string>
+#include <memory>
 
 namespace tenochtitlan
 {
@@ -20,6 +21,7 @@ namespace tenochtitlan
 
 			char* Buf();
 			int Size();
+			void Append(std::shared_ptr<Buffer>);
 		};
 	}
 }	

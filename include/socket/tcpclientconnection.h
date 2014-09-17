@@ -19,7 +19,8 @@ namespace tenochtitlan
 		private:
 			bool closed;
 			int socket_fd;
-			ev_io *io;
+			ev_io *read_watch;
+			ev_io *write_watch;
 			struct ev_loop *loop;
 			std::queue<std::shared_ptr<Buffer>> write_queue;
 			std::queue<std::shared_ptr<Buffer>> read_queue;
