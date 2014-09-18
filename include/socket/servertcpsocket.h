@@ -13,6 +13,7 @@
 #include <vector>
 #include <memory>
 #include <thread>
+#include <mutex>
 
 namespace tenochtitlan
 {
@@ -21,14 +22,15 @@ namespace tenochtitlan
 		class ServerTcpSocket : public TcpSocket, public management::Disposable
 		{
 		private:
-			uv_loop_t loop;
 			uv_tcp_t *server;
 
 			bool listening;
 			bool stopped;
+			bool disposed;
 			int master_socket;
 			std::shared_ptr<TcpClientConnectionHandler> connection_handler;
 			std::shared_ptr<management::Logger> logger;
+			std::mutex disposed_mutex;
 
 			void Run();
 			void Stop();
@@ -40,9 +42,9 @@ namespace tenochtitlan
 			void Listen(std::string address, int port);
 			void Dispose();
 
-			void Accept(int socket_fd, int revents);
+			void Accept(uv_stream_t *server, int status);
 
-			friend void native_accept(struct ev_loop *loop, ev_io *w, int revents);
+			friend void native_accept(uv_stream_t *server, int status);
 		};
 	}
 }

@@ -4,7 +4,7 @@
 
 #include "management/logger.h"
 #include "buffer.h"
-#include <ev.h>
+#include <uv.h>
 #include <queue>
 #include <thread>
 #include <mutex>
@@ -17,39 +17,39 @@ namespace tenochtitlan
 		class TcpClientConnection
 		{
 		private:
+			uv_loop_t *loop;
+			uv_tcp_t *client;
+
 			bool closed;
-			int socket_fd;
-			ev_io *read_watch;
-			ev_io *write_watch;
-			struct ev_loop *loop;
-			std::queue<std::shared_ptr<Buffer>> write_queue;
 			std::queue<std::shared_ptr<Buffer>> read_queue;
 			std::mutex read_queue_mutex;
-			std::mutex write_queue_mutex;
 			std::mutex closed_mutex;
 			std::condition_variable read_wait;
 			std::shared_ptr<management::Logger> logger;
+			std::mutex write_count_mutex;
+			int write_count;
 
-			void UpdateEvents();
+			void IncreaseWriteCount();
+			void DecreaseWriteCount();
+			int WriteCount();
 		public:
 			TcpClientConnection();
 			~TcpClientConnection();
 
-			int FileDescriptor();
-			void Open(int master_socket);
+			void Open(uv_stream_t *server);
 			void Close();
 			std::queue<std::shared_ptr<Buffer>> Read();
 			std::queue<std::shared_ptr<Buffer>> ReadOrWait(int time_in_millis);
 			void Write(char *buf, int buffer_size);
 			void Write(std::shared_ptr<Buffer> buffer);
 			void Write(std::string str);
-			bool DoRead();
-			void DoWrite();
-			void SignalEvent(int socket_fd, int revents);
+			void DoRead(const uv_buf_t* buf, ssize_t nread);
 			bool IsClosed();
 			void RequeueBuffer(std::shared_ptr<Buffer>);
 
-			friend void native_callback(struct ev_loop *loop, ev_io *w, int revents);
+			friend void buffer_written_cb(uv_write_t* req, int status);
+			friend void buffer_alloc_cb(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf);
+			friend void buffer_read_cb(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf);
 		};
 	}
 }

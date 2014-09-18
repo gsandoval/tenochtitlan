@@ -5,13 +5,7 @@
 #include <chrono>
 #include <cstdlib>
 #include <cstring>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/time.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#include <sstream>
 
 namespace tenochtitlan
 {
@@ -19,79 +13,58 @@ namespace tenochtitlan
 	{
 		using namespace std;
 
-		ServerTcpSocket::ServerTcpSocket() : listening(false), stopped(false)
+		ServerTcpSocket::ServerTcpSocket() : listening(false), stopped(false), disposed(false)
 		{
 			logger = shared_ptr<management::Logger>(new management::Logger("ServerTcpSocket"));
-			loop = uv_default_loop();
 			server = new uv_tcp_t();
-			uv_tcp_init(loop, server);
+			uv_tcp_init(uv_default_loop(), server);
 			server->data = this;
 		}
 
 		ServerTcpSocket::~ServerTcpSocket()
 		{
-			delete io;
 			Dispose();
+
+			delete server;
 		}
 
-		void ServerTcpSocket::SetConnectionHandler(
-			shared_ptr<TcpClientConnectionHandler> connection_handler)
+		void ServerTcpSocket::SetConnectionHandler(shared_ptr<TcpClientConnectionHandler> connection_handler)
 		{
 			this->connection_handler = connection_handler;
 		}
 
-		void native_accept(struct ev_loop *loop, ev_io *w, int revents)
+		void native_accept(uv_stream_t *server, int status)
 		{
-			void *data = ev_userdata(loop);
-			ServerTcpSocket *server = (ServerTcpSocket *)data;
-			server->Accept(w->fd, revents);
+			ServerTcpSocket *that = (ServerTcpSocket*)server->data;
+			that->Accept(server, status);
 		}
 
 		void ServerTcpSocket::Listen(string address, int port)
 		{
 			struct sockaddr_in serveraddr;
-		 
-			if ((master_socket = ::socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-				throw SocketException("Could not create socket");
-			}
+			uv_ip4_addr("0.0.0.0", port, &serveraddr);
+		    uv_tcp_bind(server, (const struct sockaddr *)&serveraddr, 0);
 
-			int yes = 1;
-
-			if (setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1) {
-			    throw SocketException("Error configuring the master socket to be reused");
-			}
-			
-			serveraddr.sin_family = AF_INET;
-			serveraddr.sin_addr.s_addr = INADDR_ANY;
-			serveraddr.sin_port = htons(port);
-			memset(&(serveraddr.sin_zero), '\0', 8);
-			
-			fcntl(master_socket, F_SETFL, fcntl(master_socket, F_GETFL, 0) | O_NONBLOCK);
-
-			if (::bind(master_socket, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) == -1) {
-			    throw SocketException("Could not bind address to socket");
-			}
-			 
-			if (listen(master_socket, 10) == -1) {
-			    throw SocketException("Could not listen on socket");
-			}
-
-			ev_io_init(io, native_accept, master_socket, EV_READ);
-			ev_io_start(loop, io);
+		    int r = uv_listen((uv_stream_t*) server, 128, native_accept);
+		    if (r) {
+		    	ostringstream oss;
+		    	oss << "Error listening on socket " << uv_err_name(errno);
+		        throw SocketException(oss.str());
+		    }
 
 			thread t = thread([&] {
-				ev_run(loop, 0);
+				uv_run(uv_default_loop(), UV_RUN_DEFAULT);
 			});
 			t.detach();
 		}
 
-		void ServerTcpSocket::Accept(int master_fd, int revents) {
-			if (EV_ERROR & revents) {
-				return;
-			}
+		void ServerTcpSocket::Accept(uv_stream_t *server, int status) {
+			if (status == -1) {
+		        throw SocketException("Error reading from socket");
+		    }
 
 			auto client = make_shared<TcpClientConnection>();
-			client->Open(master_fd);
+			client->Open(server);
 
 			if (connection_handler) {
 				connection_handler->HandleNewConnection(client);
@@ -102,12 +75,12 @@ namespace tenochtitlan
 
 		void ServerTcpSocket::Dispose()
 		{
-			ev_io_stop(loop, io);
-
-			shutdown(master_socket, SHUT_RDWR);
-			close(master_socket);
-			
-			ev_break(loop, EVBREAK_ONE);
+			unique_lock<mutex> lk(disposed_mutex);
+			if (!disposed) {
+				disposed = true;
+				uv_close((uv_handle_t*)server, NULL);
+			}
+			lk.unlock();
 		}
 	}
 }

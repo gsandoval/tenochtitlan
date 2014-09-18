@@ -2,11 +2,11 @@ APPLICATION=tenochtitlan
 
 IDIR=./include
 CXX=g++
-CXXFLAGS=-I$(IDIR) -I./lib/libev -I./lib/libuv/include -std=c++11 -Wall -g
+CXXFLAGS=-I$(IDIR) -I./lib/libuv/include -std=c++11 -Wall -g
 
 ODIR=build
 
-LIBS=./lib/libev/.libs/libev.a ./lib/libuv/build/Release/libuv.a
+LIBS=./lib/libuv/build/Release/libuv.a
 
 _DEPS = management/logger.h management/disposable.h management/applicationlifecyclelistener.h socket/buffer.h socket/socketexception.h \
 	socket/tcpsocket.h socket/servertcpsocket.h socket/clienttcpsocket.h socket/tcpclientconnection.h \
