@@ -7,7 +7,8 @@
       'dependencies': [
       ],
       'include_dirs': [
-        'include'
+        'include',
+        'lib/libuv/include'
       ],
       'sources': [
         'src/management/logger.cpp',
