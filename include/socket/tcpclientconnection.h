@@ -26,12 +26,6 @@ namespace tenochtitlan
 			std::mutex closed_mutex;
 			std::condition_variable read_wait;
 			std::shared_ptr<management::Logger> logger;
-			std::mutex write_count_mutex;
-			int write_count;
-
-			void IncreaseWriteCount();
-			void DecreaseWriteCount();
-			int WriteCount();
 		public:
 			TcpClientConnection();
 			~TcpClientConnection();
@@ -44,12 +38,14 @@ namespace tenochtitlan
 			void Write(std::shared_ptr<Buffer> buffer);
 			void Write(std::string str);
 			void DoRead(const uv_buf_t* buf, ssize_t nread);
+			void DoWrite(const uv_buf_t buf);
 			bool IsClosed();
 			void RequeueBuffer(std::shared_ptr<Buffer>);
 
 			friend void buffer_written_cb(uv_write_t* req, int status);
 			friend void buffer_alloc_cb(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf);
 			friend void buffer_read_cb(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf);
+			friend void process_write_request(uv_async_t* handle);
 		};
 	}
 }

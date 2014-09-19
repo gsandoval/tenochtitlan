@@ -15,18 +15,17 @@ namespace tenochtitlan
 		struct WriteCbPayload
 		{
 			TcpClientConnection *instance;
-			char *buffer;
-			WriteCbPayload(TcpClientConnection *instance, char *buffer) : instance(instance), buffer(buffer)
+			uv_buf_t buffer;
+			WriteCbPayload(TcpClientConnection *instance, uv_buf_t buffer) : instance(instance), buffer(buffer)
 			{
 
 			}
 			~WriteCbPayload()
 			{
-				delete buffer;
 			}
 		};
 
-		TcpClientConnection::TcpClientConnection() : closed(false), write_count(0)
+		TcpClientConnection::TcpClientConnection() : closed(false)
 		{
 			logger = shared_ptr<management::Logger>(new management::Logger("TcpClientConnection"));
 
@@ -95,15 +94,24 @@ namespace tenochtitlan
 			t.detach();
 		}
 
+		void shutdown_cb(uv_shutdown_t* req, int status)
+		{
+			delete req;
+		}
+
+		void close_cb(uv_handle_t* handle)
+		{
+
+		}
+
 		void TcpClientConnection::Close()
 		{
 			logger->Debug(__func__, "Closing socket!");
 
-			/*
-			while (WriteCount() > 0) {
+			uv_shutdown_t *req = new uv_shutdown_t();
+			uv_shutdown(req, (uv_stream_s*)client, shutdown_cb);
+			while (uv_is_active((uv_handle_t*)client))
 			    this_thread::sleep_for(chrono::milliseconds(100));
-			}
-			*/
 
 			logger->Debug(__func__, "After sleep");
 
@@ -111,12 +119,10 @@ namespace tenochtitlan
 			if (!closed) {
 				closed = true;
 
-				uv_shutdown_t req;
-				uv_shutdown(&req, (uv_stream_t*)client, NULL);
-
 				logger->Debug(__func__, "Before close");
-				uv_close((uv_handle_t*)client, NULL);
+				uv_close((uv_handle_t*)client, close_cb);
 				logger->Debug(__func__, "Before stop");
+
 				uv_stop(loop);
 				logger->Debug(__func__, "Before loop close");
 				uv_loop_close(loop);
@@ -162,25 +168,33 @@ namespace tenochtitlan
 		void buffer_written_cb(uv_write_t* req, int status)
 		{
 			cout << "Testinginginging" << endl;
-			WriteCbPayload* cb_payload = (WriteCbPayload*)req->data;
-			cb_payload->instance->DecreaseWriteCount();
+		}
+
+		void TcpClientConnection::DoWrite(const uv_buf_t buf)
+		{
+			uv_write_t *req = new uv_write_t();
+			uv_write(req, (uv_stream_t*)client, &buf, 1, buffer_written_cb);
+		}
+
+		void process_write_request(uv_async_t* handle)
+		{
+			WriteCbPayload *cb_payload = (WriteCbPayload*)handle->data;
+			cb_payload->instance->DoWrite(cb_payload->buffer);
+			delete cb_payload->buffer.base;
 			delete cb_payload;
-			delete req;
 		}
 
 		void TcpClientConnection::Write(char *buf, int buffer_size)
 		{
-			uv_buf_t buffer[1];
-			buffer[0].base = buf;
-			buffer[0].len = buffer_size;
+			uv_buf_t buffer;
+			buffer.base = buf;
+			buffer.len = buffer_size;
 
-			auto cb_payload = new WriteCbPayload(this, buf);
-			IncreaseWriteCount();
+			uv_async_t *async = new uv_async_t();
+			async->data = new WriteCbPayload(this, buffer);
 
-			uv_write_t *req = new uv_write_t();
-			req->data = cb_payload;
-
-			uv_write(req, (uv_stream_t*)client, buffer, 1, NULL);
+			uv_async_init(loop, async, process_write_request);
+			uv_async_send(async);
 		}
 
 		void TcpClientConnection::Write(shared_ptr<Buffer> buf)
@@ -188,9 +202,9 @@ namespace tenochtitlan
 			int size = buf->Size();
 			char *b = new char[size];
 
-			uv_buf_t buffer[1];
-			buffer[0].base = b;
-			buffer[0].len = size;
+			uv_buf_t buffer;
+			buffer.base = b;
+			buffer.len = size;
 
 			ostringstream oss;
 			oss << "Queuing " << size;
@@ -198,13 +212,11 @@ namespace tenochtitlan
 
 			memcpy(b, buf->Buf(), size);
 
-			auto cb_payload = new WriteCbPayload(this, b);
-			IncreaseWriteCount();
+			uv_async_t *async = new uv_async_t();
+			async->data = new WriteCbPayload(this, buffer);
 
-			uv_write_t *req = new uv_write_t();
-			req->data = cb_payload;
-
-			uv_write(req, (uv_stream_t*)client, buffer, 1, NULL);
+			uv_async_init(loop, async, process_write_request);
+			uv_async_send(async);
 		}
 
 		void TcpClientConnection::Write(string str)
@@ -212,54 +224,22 @@ namespace tenochtitlan
 			int size = str.size() + 1;
 			char *b = new char[size];
 
-			uv_buf_t buffer[1];
-			buffer[0].base = b;
-			buffer[0].len = size;
+			uv_buf_t buffer;
+			buffer.base = b;
+			buffer.len = size;
 
 			strcpy(b, str.c_str());
 
-			auto cb_payload = new WriteCbPayload(this, b);
-			IncreaseWriteCount();
+			uv_async_t *async = new uv_async_t();
+			async->data = new WriteCbPayload(this, buffer);
 
-			uv_write_t *req = new uv_write_t();
-			req->data = cb_payload;
-
-			uv_write(req, (uv_stream_t*)client, buffer, 1, NULL);
+			uv_async_init(loop, async, process_write_request);
+			uv_async_send(async);
 		}
 
 		bool TcpClientConnection::IsClosed()
 		{
 			return closed;
-		}
-
-		void TcpClientConnection::IncreaseWriteCount()
-		{
-			logger->Debug(__func__, "Before increase");
-			unique_lock<mutex> lk(write_count_mutex);
-			write_count++;
-			ostringstream oss;
-			oss << "Increasing " << write_count;
-			logger->Debug(__func__, oss.str());
-			lk.unlock();
-		}
-
-		void TcpClientConnection::DecreaseWriteCount()
-		{
-			logger->Debug(__func__, "Before decrease");
-			unique_lock<mutex> lk(write_count_mutex);
-			write_count--;
-			ostringstream oss;
-			oss << "Decreasing " << write_count;
-			logger->Debug(__func__, oss.str());
-			lk.unlock();
-		}
-
-		int TcpClientConnection::WriteCount()
-		{
-			unique_lock<mutex> lk(write_count_mutex);
-			int local = write_count;
-			lk.unlock();
-			return local;
 		}
 
 	}
