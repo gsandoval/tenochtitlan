@@ -116,13 +116,13 @@ namespace tenochtitlan
 		{
 			ostringstream oss;
 			
-			oss << version << " " << code << " " << code_str << "\n\r";
+			oss << version << " " << code << " " << code_str << "\r\n";
 
 			for (unsigned int i = 0; i < headers.size(); i++) {
-				oss << headers[i].first << ": " << headers[i].second << "\n\r";
+				oss << headers[i].first << ": " << headers[i].second << "\r\n";
 			}
 
-			oss << "\n\r";
+			oss << "\r\n";
 
 			return shared_ptr<socket::Buffer>(new socket::Buffer(oss.str()));
 		}

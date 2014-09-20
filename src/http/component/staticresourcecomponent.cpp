@@ -26,8 +26,14 @@ namespace tenochtitlan
 				auto req = ctx->Request();
 				auto res = ctx->Response();
 
+				string rp = req->ResourcePath();
+				auto qpos = rp.find_last_of("?");
+				if (qpos != string::npos) {
+					rp = rp.substr(0, qpos);
+				}
+
 				ostringstream oss;
-				oss << "." << base_path << req->ResourcePath();
+				oss << "." << base_path << rp;
 				string resource_path = oss.str();
 
 				auto file_cache = util::FileReaderCache::Instance();

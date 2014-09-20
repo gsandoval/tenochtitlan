@@ -35,13 +35,13 @@ namespace tenochtitlan
 			auto props = context->Properties();
 			if (props->GetBool("t:IsHandled")) {
 				auto response = context->Response();
-
+				/*
 				auto buffer = response->HeaderAsBuffer();
 				buffer->Append(response->ContentAsBuffer());
 				client->Write(buffer);
-				
-				//client->Write(response->HeaderAsBuffer());
-				//client->Write(response->ContentAsBuffer());
+				*/
+				client->Write(response->HeaderAsBuffer());
+				client->Write(response->ContentAsBuffer());
 			}
 
 			client->Close();

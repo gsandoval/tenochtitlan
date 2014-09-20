@@ -53,9 +53,23 @@
             'libraries': [
               '-llib/libuv/Release/lib/libuv'
             ],
+            "configurations": {
+              "Debug": {},
+              "Release": {}
+            }
           }, {
           # OS != "win",
-            'defines': ['NON_WINDOWS_DEFINE'],
+            'xcode_settings': {
+              'OTHER_CPLUSPLUSFLAGS': ['-std=c++11','-stdlib=libc++'],
+              'OTHER_LDFLAGS': ['-stdlib=libc++']
+            },
+            'libraries': [
+              'lib/libuv/build/Debug/libuv.a'
+            ],
+            "configurations": {
+              "Debug": {},
+              "Release": {}
+            }
           }
         ]
       ]

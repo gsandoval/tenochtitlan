@@ -17,7 +17,6 @@ namespace tenochtitlan
 		class TcpClientConnection
 		{
 		private:
-			uv_loop_t *loop;
 			uv_tcp_t *client;
 
 			bool closed;

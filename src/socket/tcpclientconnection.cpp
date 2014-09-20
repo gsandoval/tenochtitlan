@@ -29,19 +29,15 @@ namespace tenochtitlan
 		{
 			logger = shared_ptr<management::Logger>(new management::Logger("TcpClientConnection"));
 
-			loop = new uv_loop_t();
-			uv_loop_init(loop);
-
 			client = new uv_tcp_t();
 			client->data = this;
 
-			uv_tcp_init(loop, client);
+			uv_tcp_init(uv_default_loop(), client);
 		}
 
 		TcpClientConnection::~TcpClientConnection()
 		{
 			delete client;
-			delete loop;
 		}
 
 		void buffer_alloc_cb(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf)
@@ -66,7 +62,6 @@ namespace tenochtitlan
 				delete buf->base;
 				throw SocketException("An error occurred when reading");
 			} else if (nread > 0) {
-				logger->Debug(__func__, buf->base);
 				shared_ptr<Buffer> buffer(new Buffer(buf->base, nread));
 
 				unique_lock<mutex> lk(read_queue_mutex);
@@ -87,11 +82,6 @@ namespace tenochtitlan
 		        uv_close((uv_handle_t*) client, NULL);
 		        throw SocketException("Could not accept connection");
 		    }
-
-			thread t = thread([&] {
-				uv_run(loop, UV_RUN_DEFAULT);
-			});
-			t.detach();
 		}
 
 		void shutdown_cb(uv_shutdown_t* req, int status)
@@ -106,29 +96,18 @@ namespace tenochtitlan
 
 		void TcpClientConnection::Close()
 		{
-			logger->Debug(__func__, "Closing socket!");
-
 			uv_shutdown_t *req = new uv_shutdown_t();
 			uv_shutdown(req, (uv_stream_s*)client, shutdown_cb);
 			while (uv_is_active((uv_handle_t*)client))
 			    this_thread::sleep_for(chrono::milliseconds(100));
 
-			logger->Debug(__func__, "After sleep");
-
 			unique_lock<mutex> lk(closed_mutex);
 			if (!closed) {
 				closed = true;
 
-				logger->Debug(__func__, "Before close");
 				uv_close((uv_handle_t*)client, close_cb);
-				logger->Debug(__func__, "Before stop");
-
-				uv_stop(loop);
-				logger->Debug(__func__, "Before loop close");
-				uv_loop_close(loop);
 			}
 			lk.unlock();
-			logger->Debug(__func__, "After close unlock");
 		}
 
 		queue<shared_ptr<Buffer>> TcpClientConnection::Read()
@@ -167,7 +146,7 @@ namespace tenochtitlan
 
 		void buffer_written_cb(uv_write_t* req, int status)
 		{
-			cout << "Testinginginging" << endl;
+			delete req;
 		}
 
 		void TcpClientConnection::DoWrite(const uv_buf_t buf)
@@ -193,7 +172,7 @@ namespace tenochtitlan
 			uv_async_t *async = new uv_async_t();
 			async->data = new WriteCbPayload(this, buffer);
 
-			uv_async_init(loop, async, process_write_request);
+			uv_async_init(uv_default_loop(), async, process_write_request);
 			uv_async_send(async);
 		}
 
@@ -206,16 +185,12 @@ namespace tenochtitlan
 			buffer.base = b;
 			buffer.len = size;
 
-			ostringstream oss;
-			oss << "Queuing " << size;
-			logger->Debug(__func__, oss.str());
-
 			memcpy(b, buf->Buf(), size);
 
 			uv_async_t *async = new uv_async_t();
 			async->data = new WriteCbPayload(this, buffer);
 
-			uv_async_init(loop, async, process_write_request);
+			uv_async_init(uv_default_loop(), async, process_write_request);
 			uv_async_send(async);
 		}
 
@@ -233,7 +208,7 @@ namespace tenochtitlan
 			uv_async_t *async = new uv_async_t();
 			async->data = new WriteCbPayload(this, buffer);
 
-			uv_async_init(loop, async, process_write_request);
+			uv_async_init(uv_default_loop(), async, process_write_request);
 			uv_async_send(async);
 		}
 

@@ -1,3 +1,4 @@
-lib/libev-4.15
-lib/libev
 lib
+tenochtitlan.xcodeproj
+build
+tenochtitlan

@@ -1,0 +1,2 @@
+#!/bin/bash
+xcodebuild -ARCHS="x86_64" -project tenochtitlan.xcodeproj -configuration Debug -target tenochtitlan
