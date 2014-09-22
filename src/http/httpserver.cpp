@@ -5,6 +5,9 @@
 #include "http/component/restcomponent.h"
 #include "http/component/inputvalidationcomponent.h"
 
+#include "http/component/rest/homecontroller.h"
+#include "http/component/rest/contactcontroller.h"
+
 namespace tenochtitlan
 {
 	namespace http
@@ -21,6 +24,9 @@ namespace tenochtitlan
 			request_processor->AddComponent(input_validation_component);
 			request_processor->AddComponent(static_resource_component);
 			request_processor->AddComponent(rest_component);
+
+			rest_component->AddController(make_shared<::http::component::rest::ContactController>());
+			rest_component->AddController(make_shared<::http::component::rest::HomeController>());
 
 			auto worker_creator = shared_ptr<HttpSocketServerWorkerCreator>(new HttpSocketServerWorkerCreator(request_processor));
 

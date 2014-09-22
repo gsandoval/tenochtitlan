@@ -20,10 +20,9 @@ namespace tenochtitlan
 
 			bool cached = file_cache.find(path) != file_cache.end();
 			if (!cached) {
-				ifstream file(path, ifstream::binary);
-				file.seekg(0, file.end);
-				streamsize size = file.tellg();
-				file.seekg(0, file.beg);
+				ifstream file(path, ifstream::binary|ifstream::ate);
+				streampos size = file.tellg();
+				file.seekg (0, ifstream::beg);
 
 				char *file_bytes = new char[size];
 				file.read(file_bytes, size);
@@ -38,8 +37,10 @@ namespace tenochtitlan
 
 				file_cache[path] = content;
 			}
+			auto res = file_cache[path];
+			lk.unlock();
 
-			return file_cache[path];
+			return res;
 		}
 
 		string FileReaderCache::GetFileExtension(string &filepath)

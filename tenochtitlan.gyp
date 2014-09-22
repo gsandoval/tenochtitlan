@@ -41,7 +41,10 @@
         'src/http/content/httpcontent.cpp',
         'src/http/content/httpfilecontent.cpp',
         'src/http/content/httpstringcontent.cpp',
-        'src/util/filereadercache.cpp'
+        'src/util/filereadercache.cpp',
+        'src/http/component/rest/controller.cpp',
+        'src/http/component/rest/contactcontroller.cpp',
+        'src/http/component/rest/homecontroller.cpp'
       ],
       'conditions': [
         [

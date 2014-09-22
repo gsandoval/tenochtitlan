@@ -36,9 +36,13 @@ namespace tenochtitlan
 				oss << "." << base_path << rp;
 				string resource_path = oss.str();
 
+				logger->Debug(__func__, "Before file exist check");
+
 				auto file_cache = util::FileReaderCache::Instance();
+				logger->Debug(__func__, "File cache instance obtained");
 
 				if (req->Method() == "GET" && file_cache->Exists(resource_path)) {
+					logger->Debug(__func__, "it does exist");
 					auto file_content = file_cache->GetFile(resource_path);
 					oss = ostringstream();
 					oss << "file size to queue " << file_content->Buffer()->Size();

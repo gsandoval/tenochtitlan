@@ -25,7 +25,7 @@ namespace tenochtitlan
 			}
 		};
 
-		TcpClientConnection::TcpClientConnection() : closed(false)
+		TcpClientConnection::TcpClientConnection() : closed(false), write_request_count(0)
 		{
 			logger = shared_ptr<management::Logger>(new management::Logger("TcpClientConnection"));
 
@@ -84,30 +84,74 @@ namespace tenochtitlan
 		    }
 		}
 
+		void close_stream_request(uv_async_t* async)
+		{
+			TcpClientConnection* that = (TcpClientConnection*)async->data;
+			that->DoShutdown();
+			//delete async;
+		}
+
 		void shutdown_cb(uv_shutdown_t* req, int status)
 		{
+			TcpClientConnection* that = (TcpClientConnection*)req->data;
+			that->DoClose();
 			delete req;
 		}
 
 		void close_cb(uv_handle_t* handle)
 		{
+			TcpClientConnection* that = (TcpClientConnection*)handle->data;
+			that->FinallyClosed();
+		}
 
+		void TcpClientConnection::DoClose()
+		{
+			logger->Debug(__func__, "DoClose");
+			client->data = this;
+			uv_close((uv_handle_t*)client, close_cb);
+		}
+
+		void TcpClientConnection::DoShutdown()
+		{
+			logger->Debug(__func__, "DoShutdown");
+			uv_shutdown_t *req = new uv_shutdown_t();
+			req->data = this;
+			uv_shutdown(req, (uv_stream_s*)client, shutdown_cb);
+			/*
+			while (uv_is_active((uv_handle_t*)client))
+			    this_thread::sleep_for(chrono::milliseconds(100));
+			uv_close((uv_handle_t*)client, close_cb);
+			*/
+		}
+
+		void TcpClientConnection::FinallyClosed()
+		{
+			close_wait.notify_all();
 		}
 
 		void TcpClientConnection::Close()
 		{
-			uv_shutdown_t *req = new uv_shutdown_t();
-			uv_shutdown(req, (uv_stream_s*)client, shutdown_cb);
-			while (uv_is_active((uv_handle_t*)client))
-			    this_thread::sleep_for(chrono::milliseconds(100));
-
+			logger->Debug(__func__, "Close");
 			unique_lock<mutex> lk(closed_mutex);
 			if (!closed) {
 				closed = true;
 
-				uv_close((uv_handle_t*)client, close_cb);
+				unique_lock<mutex> lk(write_request_count_mutex);
+				condition_variable cv;
+				while (write_request_count > 0) cv.wait_for(lk, chrono::milliseconds(100));
+				lk.unlock();
+
+				uv_async_t *async = new uv_async_t();
+				async->data = this;
+
+				uv_async_init(uv_default_loop(), async, close_stream_request);
+				uv_async_send(async);
 			}
 			lk.unlock();
+
+			unique_lock<mutex> w(close_process_mutex);
+			close_wait.wait(w);
+			w.unlock();
 		}
 
 		queue<shared_ptr<Buffer>> TcpClientConnection::Read()
@@ -139,19 +183,28 @@ namespace tenochtitlan
 				read_wait.wait_for(lk, chrono::milliseconds(time_in_millis));
 			}
 			auto local_copy = read_queue;
-			while (!read_queue.empty()) read_queue.pop();
+			queue<shared_ptr<Buffer>>().swap(read_queue);
 			lk.unlock();
 			return local_copy;
 		}
 
 		void buffer_written_cb(uv_write_t* req, int status)
 		{
-			delete req;
+			//delete req;
+			TcpClientConnection *that = (TcpClientConnection*)req->data;
+			unique_lock<mutex> lk(that->write_request_count_mutex);
+			that->write_request_count--;
+			lk.unlock();
 		}
 
 		void TcpClientConnection::DoWrite(const uv_buf_t buf)
 		{
+			unique_lock<mutex> lk(write_request_count_mutex);
+			write_request_count++;
+			lk.unlock();
+
 			uv_write_t *req = new uv_write_t();
+			req->data = this;
 			uv_write(req, (uv_stream_t*)client, &buf, 1, buffer_written_cb);
 		}
 
@@ -161,6 +214,7 @@ namespace tenochtitlan
 			cb_payload->instance->DoWrite(cb_payload->buffer);
 			delete cb_payload->buffer.base;
 			delete cb_payload;
+			//delete handle;
 		}
 
 		void TcpClientConnection::Write(char *buf, int buffer_size)

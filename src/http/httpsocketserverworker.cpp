@@ -45,6 +45,7 @@ namespace tenochtitlan
 			}
 
 			client->Close();
+			logger->Debug(__func__, "Worker finished");
 		}
 
 		void HttpSocketServerWorker::SetRequestProcessor(
