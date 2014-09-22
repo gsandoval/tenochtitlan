@@ -2,8 +2,12 @@
 
 #include <signal.h>
 #include <cstdlib>
-#include <unistd.h>
 #include <iostream>
+#ifdef _MSC_VER
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
 
 namespace tenochtitlan
 {
@@ -20,11 +24,15 @@ namespace tenochtitlan
 
 		ApplicationLifecycleListener::ApplicationLifecycleListener()
 		{
+#ifndef _MSC_VER
 			struct sigaction sig_int_handler;
 			sig_int_handler.sa_handler = ctrl_c_handler;
 			sigemptyset(&sig_int_handler.sa_mask);
 			sig_int_handler.sa_flags = 0;
 			sigaction(SIGINT, &sig_int_handler, NULL);
+#else
+			(void) signal(SIGINT, ctrl_c_handler);
+#endif
 		}
 
 		ApplicationLifecycleListener* ApplicationLifecycleListener::Instance()

@@ -1,4 +1,15 @@
 {
+  'target_defaults': {
+    'default_configuration': 'Debug',
+    'configurations': {
+      'Debug': {
+        'defines': [ 'DEBUG', '_DEBUG' ],
+      },
+      'Release': {
+        'defines': [ 'NDEBUG' ],
+      }
+    }
+  },
   'targets': [
     {
       'target_name': 'tenochtitlan',
@@ -54,10 +65,30 @@
         [
           'OS=="win"', {
             'libraries': [
-              '-llib/libuv/Release/lib/libuv'
+              '-llibuv.lib'
             ],
             "configurations": {
-              "Debug": {},
+              "Debug": {
+                "msvs_settings": {
+                  "VCCLCompilerTool": {
+                    "ExceptionHandling": "0",
+                    "AdditionalOptions": [
+                      "/MP /EHsc /MDd"
+                    ]
+                  },
+                  "VCLibrarianTool": {
+                    "AdditionalOptions": [
+                    ]
+                  },
+                  "VCLinkerTool": {
+                    "LinkTimeCodeGeneration": 1,
+                    "LinkIncremental": 1,
+                    "AdditionalLibraryDirectories": [
+                      "lib/libuv/Debug"
+                    ]
+                  }
+                }
+              },
               "Release": {}
             }
           }, {

@@ -1,3 +1,3 @@
 @echo off
 
-msbuild tenochtitlan.sln /clp:NoSummary;NoItemAndPropertyList;Verbosity=minimal /nologo
+msbuild tenochtitlan.sln /t:tenochtitlan /p:Configuration=Debug /p:Platform="Win32" /clp:NoSummary;NoItemAndPropertyList;Verbosity=minimal /nologo

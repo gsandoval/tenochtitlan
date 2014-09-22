@@ -25,8 +25,8 @@ namespace tenochtitlan
 			request_processor->AddComponent(static_resource_component);
 			request_processor->AddComponent(rest_component);
 
-			rest_component->AddController(make_shared<::http::component::rest::ContactController>());
-			rest_component->AddController(make_shared<::http::component::rest::HomeController>());
+			rest_component->AddController(make_shared<component::rest::ContactController>());
+			rest_component->AddController(make_shared<component::rest::HomeController>());
 
 			auto worker_creator = shared_ptr<HttpSocketServerWorkerCreator>(new HttpSocketServerWorkerCreator(request_processor));
 

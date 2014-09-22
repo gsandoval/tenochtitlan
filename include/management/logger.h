@@ -6,7 +6,7 @@
 #include <condition_variable>
 #include <mutex>
 
-#if defined ( WIN32 )
+#ifdef _MSC_VER
 #define __func__ __FUNCTION__
 #endif
 

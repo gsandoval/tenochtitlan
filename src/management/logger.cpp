@@ -5,6 +5,9 @@
 #include <chrono>
 #include <sstream>
 #include <signal.h>
+#ifdef _MSC_VER
+#include <windows.h>
+#endif
 
 namespace tenochtitlan
 {
@@ -35,12 +38,15 @@ namespace tenochtitlan
 				});
 				t.detach();
 
-
+#ifndef _MSC_VER
 				struct sigaction sig_int_handler;
 				sig_int_handler.sa_handler = logger_ctrl_c_handler;
 				sigemptyset(&sig_int_handler.sa_mask);
 				sig_int_handler.sa_flags = 0;
 				sigaction(SIGINT, &sig_int_handler, NULL);
+#else
+				(void) signal(SIGINT, logger_ctrl_c_handler);
+#endif
 			}
 			lk.unlock();
 		}
@@ -54,7 +60,7 @@ namespace tenochtitlan
 			chrono::system_clock::time_point now = chrono::system_clock::now();
 			time_t tt = chrono::system_clock::to_time_t(now);
 			char mbstr[100];
-		    std::strftime(mbstr, sizeof(mbstr), "%F %T", std::localtime(&tt));
+		    strftime(mbstr, sizeof(mbstr), "%F %T", localtime(&tt));
 
 			ostringstream oss;
 			oss << mbstr << " [DEBUG] " << this_thread::get_id() << " [" << class_name << "::" << mtd << "] " << msg;
@@ -71,7 +77,7 @@ namespace tenochtitlan
 			chrono::system_clock::time_point now = chrono::system_clock::now();
 			time_t tt = chrono::system_clock::to_time_t(now);
 			char mbstr[100];
-		    std::strftime(mbstr, sizeof(mbstr), "%F %T", std::localtime(&tt));
+		    strftime(mbstr, sizeof(mbstr), "%F %T", localtime(&tt));
 
 			ostringstream oss;
 			oss << mbstr << " [INFO] " << this_thread::get_id() << " [" << class_name << "::" << mtd << "] " << msg;
@@ -88,7 +94,7 @@ namespace tenochtitlan
 			chrono::system_clock::time_point now = chrono::system_clock::now();
 			time_t tt = chrono::system_clock::to_time_t(now);
 			char mbstr[100];
-		    std::strftime(mbstr, sizeof(mbstr), "%F %T", std::localtime(&tt));
+		    strftime(mbstr, sizeof(mbstr), "%F %T", localtime(&tt));
 
 			ostringstream oss;
 			oss << mbstr << " [WARN] " << this_thread::get_id() << " [" << class_name << "::" << mtd << "] " << msg;
@@ -105,7 +111,7 @@ namespace tenochtitlan
 			chrono::system_clock::time_point now = chrono::system_clock::now();
 			time_t tt = chrono::system_clock::to_time_t(now);
 			char mbstr[100];
-		    std::strftime(mbstr, sizeof(mbstr), "%F %T", std::localtime(&tt));
+		    strftime(mbstr, sizeof(mbstr), "%F %T", localtime(&tt));
 
 			ostringstream oss;
 			oss << mbstr << " [ERROR] " << this_thread::get_id() << " [" << class_name << "::" << mtd << "] " << msg;

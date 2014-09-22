@@ -25,17 +25,17 @@ namespace tenochtitlan
 
 				string resource_path = req->ResourcePath();
 				
-				map<string, shared_ptr<::http::component::rest::BaseRoute>> routes = ::http::component::rest::Controller::Routes();
+				map<string, shared_ptr<rest::BaseRoute>> routes = rest::Controller::Routes();
 				for (auto it = routes.begin(); it != routes.end(); ++it) {
 					if (it->first == resource_path) {
-						::http::component::rest::Route* r = it->second.get();
-						r->f();
+						auto r = it->second;
+						r->Execute(ctx);
 						break;
 					}
 				}
 			}
 
-			void RestComponent::AddController(shared_ptr<::http::component::rest::Controller> ctrl)
+			void RestComponent::AddController(shared_ptr<rest::Controller> ctrl)
 			{
 				unique_lock<mutex> lk(controllers_mutex);
 				controller_list.push_back(ctrl);

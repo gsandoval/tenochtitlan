@@ -3,17 +3,20 @@
 
 #include "http/component/rest/controller.h"
 
-namespace http
+namespace tenochtitlan
 {
-	namespace component
+	namespace http
 	{
-		namespace rest
+		namespace component
 		{
-			class HomeController : public http::component::rest::Controller
+			namespace rest
 			{
-			public:
-				HomeController();
-			};
+				class HomeController : public tenochtitlan::http::component::rest::Controller
+				{
+				public:
+					HomeController();
+				};
+			}
 		}
 	}
 }

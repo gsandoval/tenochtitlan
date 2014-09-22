@@ -1,18 +1,21 @@
 #include "http/component/rest/homecontroller.h"
 
-namespace http
+namespace tenochtitlan
 {
-	namespace component
+	namespace http
 	{
-		namespace rest
+		namespace component
 		{
-			using namespace std;
-
-			HomeController::HomeController()
+			namespace rest
 			{
-				Get<string>("/", {}, [&]() -> string {
-					
-				});
+				using namespace std;
+
+				HomeController::HomeController()
+				{
+					Get<string>("/", {}, [&]() -> string {
+						return "";
+					});
+				}
 			}
 		}
 	}

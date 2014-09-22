@@ -3,17 +3,20 @@
 
 #include "http/component/rest/controller.h"
 
-namespace http
+namespace tenochtitlan
 {
-	namespace component
+	namespace http
 	{
-		namespace rest
+		namespace component
 		{
-			class ContactController : public http::component::rest::Controller
+			namespace rest
 			{
-			public:
-				ContactController();
-			};
+				class ContactController : public tenochtitlan::http::component::rest::Controller
+				{
+				public:
+					ContactController();
+				};
+			}
 		}
 	}
 }

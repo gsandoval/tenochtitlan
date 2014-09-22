@@ -1,14 +1,17 @@
 #include "http/component/rest/contactcontroller.h"
 
-namespace http
+namespace tenochtitlan
 {
-	namespace component
+	namespace http
 	{
-		namespace rest
+		namespace component
 		{
-			ContactController::ContactController()
+			namespace rest
 			{
-				
+				ContactController::ContactController()
+				{
+					
+				}
 			}
 		}
 	}

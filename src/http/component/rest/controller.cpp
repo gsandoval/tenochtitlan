@@ -1,11 +1,19 @@
 #include "http/component/rest/controller.h"
 
-namespace http
+namespace tenochtitlan
 {
-	namespace component
+	namespace http
 	{
-		namespace rest
+		namespace component
 		{
+			namespace rest
+			{
+				using namespace std;
+
+				mutex Controller::routes_mutex;
+				map<string, shared_ptr<BaseRoute>> Controller::routes;
+			}
 		}
 	}
 }
+

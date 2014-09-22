@@ -2,3 +2,9 @@ lib
 tenochtitlan.xcodeproj
 build
 tenochtitlan
+Debug
+Release
+*.sdf
+*.sln
+*.v12*
+*.vcxproj*
