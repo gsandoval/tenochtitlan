@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 #include <mutex>
+#include <string>
 
 namespace tenochtitlan
 {
@@ -20,6 +21,8 @@ namespace tenochtitlan
 				std::shared_ptr<management::Logger> logger;
 				std::vector<std::shared_ptr<rest::Controller>> controller_list;
 				std::mutex controllers_mutex;
+
+				std::vector<std::string> Split(std::string &str, char sep);
 			public:
 				RestComponent();
 				void Execute(std::shared_ptr<HttpContext> ctx);
