@@ -15,6 +15,18 @@ namespace tenochtitlan
 	{
 		namespace component
 		{
+			enum ParamType
+			{
+				Regex, Int, Double, Float, String, Bool
+			};
+
+			struct RouteParam
+			{
+				bool is_separator;
+				ParamType type;
+				std::string name;
+			};
+
 			class RestComponent : public HttpComponent
 			{
 			private:
@@ -22,7 +34,9 @@ namespace tenochtitlan
 				std::vector<std::shared_ptr<rest::Controller>> controller_list;
 				std::mutex controllers_mutex;
 
-				std::vector<std::string> Split(std::string &str, char sep);
+				std::vector<std::string> Split(const std::string &str, const std::string &sep);
+				bool ContainsVariables(std::string &str);
+				std::vector<RouteParam> GetRouteParamTokens(std::string &str);
 			public:
 				RestComponent();
 				void Execute(std::shared_ptr<HttpContext> ctx);

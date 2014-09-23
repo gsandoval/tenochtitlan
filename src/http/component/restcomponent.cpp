@@ -24,16 +24,16 @@ namespace tenochtitlan
 				auto res = ctx->Response();
 
 				string resource_path = req->ResourcePath();
-				vector<string> path_tokens = Split(resource_path, '/');
+				vector<string> path_tokens = Split(resource_path, "/");
 				
 				bool is_a_match = true;
 				map<string, shared_ptr<rest::BaseRoute>> routes = rest::Controller::Routes();
 				for (auto it = routes.begin(); it != routes.end(); ++it) {
-					vector<string> route_tokens = Split(it->first);
+					vector<string> route_tokens = Split(it->first, "/");
 					
 					is_a_match = true;
 					for (unsigned int i = 0; i < route_tokens.size(); i++) {
-						if (route_tokens[i] == "*") {
+						if (ContainsVariables(route_tokens[i])) {
 
 						} else if (route_tokens[i] == "") {
 
@@ -50,6 +50,51 @@ namespace tenochtitlan
 				}
 			}
 
+			bool RestComponent::ContainsVariables(string &str)
+			{
+				auto open = str.find_first_of('{');
+				return open != string::npos && str.find_first_of("}", open) != string::npos;
+			}
+
+			vector<RouteParam> RestComponent::GetRouteParamTokens(string &str)
+			{
+				vector<RouteParam> params;
+				auto last_end = str.begin();
+				auto begin = str.begin();
+				auto end = str.begin();
+				while (end != str.end()) {
+					begin = str.find_first_of("{", 0);
+					end = str.find_first_of("}", begin);
+					if (begin != last_end) {
+						RouteParam rp;
+						rp.is_separator = true;
+						rp.name = str.substr(last_end, begin);
+					}
+					last_end = end + 1;
+					string token = str.substr(begin + 1, end - 1);
+					string name = token;
+					string type = "string";
+					auto colon = token.find_first_of(':');
+					if (colon != string::npos) {
+						name = token.substr(0, colon);
+						type = token.substr(colon + 1, token.size() - colon - 1);
+					}
+					RouteParam param;
+					param.is_separator = false;
+					param.name = name;
+					if (type == "string") param.type = ParamType::String;
+					else if (type == "double") param.type = ParamType::Double;
+					else if (type == "float") param.type = ParamType::Float;
+					else if (type == "bool") param.type = ParamType::Bool;
+					else if (type == "int") param.type = ParamType::Int;
+					else if (type == "regex") param.type = ParamType::Regex;
+
+					params.push_back(param);
+				}
+
+				return params;
+			}
+
 			void RestComponent::AddController(shared_ptr<rest::Controller> ctrl)
 			{
 				unique_lock<mutex> lk(controllers_mutex);
@@ -57,7 +102,7 @@ namespace tenochtitlan
 				lk.unlock();
 			}
 
-			vector<string> RestComponent::Split(string &str, char sep)
+			vector<string> RestComponent::Split(const string &str, const string &sep)
 			{
 				vector<string> result;
 				auto begin = str.find_first_not_of(sep);
