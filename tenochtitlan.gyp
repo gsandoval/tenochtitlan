@@ -91,18 +91,32 @@
               },
               "Release": {}
             }
-          }, {
-          # OS != "win",
+          }
+        ],
+        [
+          'OS=="mac"', {
             'xcode_settings': {
               'OTHER_CPLUSPLUSFLAGS': ['-std=c++11','-stdlib=libc++'],
               'OTHER_LDFLAGS': ['-stdlib=libc++']
             },
             'libraries': [
-              'lib/libuv/build/Debug/libuv.a'
+              'libuv.a'
             ],
             "configurations": {
-              "Debug": {},
-              "Release": {}
+              "Debug": {
+                'xcode_settings': {
+                  'OTHER_LDFLAGS': [
+                    '-Llib/libuv/build/Debug'
+                  ]
+                }
+              },
+              "Release": {
+                'xcode_settings': {
+                  'OTHER_LDFLAGS': [
+                    '-Llib/libuv/build/Release'
+                  ]
+                }
+              }
             }
           }
         ]

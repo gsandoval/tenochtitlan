@@ -36,7 +36,7 @@ namespace tenochtitlan
 					std::function<T(Ts...)> f;
 					void Execute(std::shared_ptr<http::component::HttpContext> ctx)
 					{
-						static string type_name_string = typeid("").name();
+						static std::string type_name_string = typeid("").name();
 						if (typeid(T).name() == type_name_string) {
 
 						}
