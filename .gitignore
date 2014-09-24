@@ -8,3 +8,4 @@ Release
 *.sln
 *.v12*
 *.vcxproj*
+*.opensdf

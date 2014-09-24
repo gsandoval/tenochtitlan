@@ -60,7 +60,11 @@ namespace tenochtitlan
 			chrono::system_clock::time_point now = chrono::system_clock::now();
 			time_t tt = chrono::system_clock::to_time_t(now);
 			char mbstr[100];
-		    strftime(mbstr, sizeof(mbstr), "%F %T", localtime(&tt));
+#ifdef _MSC_VER
+		    strftime(mbstr, sizeof(mbstr), "%y-%m-%d %H:%M:%S", localtime(&tt));
+#else
+			strftime(mbstr, sizeof(mbstr), "%F %T", localtime(&tt));
+#endif
 
 			ostringstream oss;
 			oss << mbstr << " [DEBUG] " << this_thread::get_id() << " [" << class_name << "::" << mtd << "] " << msg;
@@ -77,7 +81,11 @@ namespace tenochtitlan
 			chrono::system_clock::time_point now = chrono::system_clock::now();
 			time_t tt = chrono::system_clock::to_time_t(now);
 			char mbstr[100];
-		    strftime(mbstr, sizeof(mbstr), "%F %T", localtime(&tt));
+#ifdef _MSC_VER
+			strftime(mbstr, sizeof(mbstr), "%y-%m-%d %H:%M:%S", localtime(&tt));
+#else
+			strftime(mbstr, sizeof(mbstr), "%F %T", localtime(&tt));
+#endif
 
 			ostringstream oss;
 			oss << mbstr << " [INFO] " << this_thread::get_id() << " [" << class_name << "::" << mtd << "] " << msg;
@@ -94,7 +102,11 @@ namespace tenochtitlan
 			chrono::system_clock::time_point now = chrono::system_clock::now();
 			time_t tt = chrono::system_clock::to_time_t(now);
 			char mbstr[100];
-		    strftime(mbstr, sizeof(mbstr), "%F %T", localtime(&tt));
+#ifdef _MSC_VER
+			strftime(mbstr, sizeof(mbstr), "%y-%m-%d %H:%M:%S", localtime(&tt));
+#else
+			strftime(mbstr, sizeof(mbstr), "%F %T", localtime(&tt));
+#endif
 
 			ostringstream oss;
 			oss << mbstr << " [WARN] " << this_thread::get_id() << " [" << class_name << "::" << mtd << "] " << msg;
@@ -111,7 +123,11 @@ namespace tenochtitlan
 			chrono::system_clock::time_point now = chrono::system_clock::now();
 			time_t tt = chrono::system_clock::to_time_t(now);
 			char mbstr[100];
-		    strftime(mbstr, sizeof(mbstr), "%F %T", localtime(&tt));
+#ifdef _MSC_VER
+			strftime(mbstr, sizeof(mbstr), "%y-%m-%d %H:%M:%S", localtime(&tt));
+#else
+			strftime(mbstr, sizeof(mbstr), "%F %T", localtime(&tt));
+#endif
 
 			ostringstream oss;
 			oss << mbstr << " [ERROR] " << this_thread::get_id() << " [" << class_name << "::" << mtd << "] " << msg;

@@ -8,6 +8,7 @@
 #include <memory>
 #include <vector>
 #include <mutex>
+#include <iostream>
 
 namespace tenochtitlan
 {
@@ -36,6 +37,7 @@ namespace tenochtitlan
 					std::function<T(Ts...)> f;
 					void Execute(std::shared_ptr<http::component::HttpContext> ctx)
 					{
+						std::cout << "found" << std::endl;
 						static std::string type_name_string = typeid("").name();
 						if (typeid(T).name() == type_name_string) {
 

@@ -17,16 +17,19 @@ namespace tenochtitlan
 
 			void RestComponent::Execute(shared_ptr<HttpContext> ctx)
 			{
+				logger->Debug(__func__, "Execute");
 				auto props = ctx->Properties();
 				if (!props->GetBool("t:IsValid") || props->GetBool("t:IsHandled"))
 					return;
+				logger->Debug(__func__, "Handling");
 
 				auto req = ctx->Request();
 				auto res = ctx->Response();
 
 				string resource_path = req->ResourcePath();
+				logger->Debug(__func__, resource_path);
 				vector<string> path_tokens = Split(resource_path, "/");
-				
+
 				bool is_a_match = true;
 				map<string, shared_ptr<rest::BaseRoute>> routes = rest::Controller::Routes();
 				for (auto it = routes.begin(); it != routes.end(); ++it) {
@@ -34,12 +37,17 @@ namespace tenochtitlan
 					
 					is_a_match = true;
 					for (unsigned int i = 0; i < route_tokens.size(); i++) {
+						string &token = path_tokens[i];
 						if (ContainsVariables(route_tokens[i])) {
 							vector<RouteParam> route_params = GetRouteParamTokens(route_tokens[i]);
-						} else if (route_tokens[i] == "") {
+						} else if (route_tokens[i] == token) {
 
+						} else {
+							is_a_match = false;
+							break;
 						}
 					}
+
 					if (is_a_match) {
 						auto r = it->second;
 						r->Execute(ctx);

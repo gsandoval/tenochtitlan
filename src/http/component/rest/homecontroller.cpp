@@ -12,7 +12,7 @@ namespace tenochtitlan
 
 				HomeController::HomeController()
 				{
-					Get<string>("/", {}, [&]() -> string {
+					Get<string>("/home", {}, [&]() -> string {
 						return "";
 					});
 				}
