@@ -17,11 +17,9 @@ namespace tenochtitlan
 
 			void RestComponent::Execute(shared_ptr<HttpContext> ctx)
 			{
-				logger->Debug(__func__, "Execute");
 				auto props = ctx->Properties();
 				if (!props->GetBool("t:IsValid") || props->GetBool("t:IsHandled"))
 					return;
-				logger->Debug(__func__, "Handling");
 
 				auto req = ctx->Request();
 				auto res = ctx->Response();
@@ -35,16 +33,21 @@ namespace tenochtitlan
 				for (auto it = routes.begin(); it != routes.end(); ++it) {
 					vector<string> route_tokens = Split(it->first, "/");
 					
-					is_a_match = true;
-					for (unsigned int i = 0; i < route_tokens.size(); i++) {
-						string &token = path_tokens[i];
-						if (ContainsVariables(route_tokens[i])) {
-							vector<RouteParam> route_params = GetRouteParamTokens(route_tokens[i]);
-						} else if (route_tokens[i] == token) {
+					is_a_match = false;
+					if (route_tokens.size() == path_tokens.size()) {
+						is_a_match = true;
+						for (unsigned int i = 0; i < route_tokens.size(); i++) {
+							string &token = path_tokens[i];
+							if (ContainsVariables(route_tokens[i])) {
+								vector<RouteParam> route_params = GetRouteParamTokens(route_tokens[i]);
+							}
+							else if (route_tokens[i] == token) {
 
-						} else {
-							is_a_match = false;
-							break;
+							}
+							else {
+								is_a_match = false;
+								break;
+							}
 						}
 					}
 
@@ -116,7 +119,6 @@ namespace tenochtitlan
 				vector<string> result;
 				int begin = 0;
 				int end = 0;
-				result.push_back(str.substr(begin, end));
 				while (end != string::npos) {
 					begin = str.find_first_not_of(sep, end);
 					end = str.find_first_of(sep, begin);

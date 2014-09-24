@@ -71,25 +71,44 @@
               "Debug": {
                 "msvs_settings": {
                   "VCCLCompilerTool": {
-                    "ExceptionHandling": "0",
+                    "ExceptionHandling": "1",
+                    "RuntimeLibrary": "3",
                     "AdditionalOptions": [
-                      "/MP /EHsc /MDd"
+                      "/MP /MDd"
                     ]
                   },
                   "VCLibrarianTool": {
-                    "AdditionalOptions": [
-                    ]
+                    "AdditionalOptions": []
                   },
                   "VCLinkerTool": {
-                    "LinkTimeCodeGeneration": 1,
                     "LinkIncremental": 1,
                     "AdditionalLibraryDirectories": [
                       "lib/libuv/Debug"
-                    ]
+                    ],
+                    "GenerateDebugInformation": "true"
                   }
                 }
               },
-              "Release": {}
+              "Release": {
+                "msvs_settings": {
+                  "VCCLCompilerTool": {
+                    "ExceptionHandling": "1",
+                    "RuntimeLibrary": "2",
+                    "AdditionalOptions": [
+                      "/MP"
+                    ]
+                  },
+                  "VCLibrarianTool": {
+                    "AdditionalOptions": []
+                  },
+                  "VCLinkerTool": {
+                    "LinkIncremental": 1,
+                    "AdditionalLibraryDirectories": [
+                      "lib/libuv/Release"
+                    ]
+                  }
+                }
+              }
             }
           }
         ],
