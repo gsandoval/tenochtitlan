@@ -1,5 +1,6 @@
 #include "http/component/restcomponent.h"
 #include "http/component/rest/controller.h"
+#include <algorithm>
 
 namespace tenochtitlan
 {
@@ -34,7 +35,7 @@ namespace tenochtitlan
 					is_a_match = true;
 					for (unsigned int i = 0; i < route_tokens.size(); i++) {
 						if (ContainsVariables(route_tokens[i])) {
-
+							vector<RouteParam> route_params = GetRouteParamTokens(route_tokens[i]);
 						} else if (route_tokens[i] == "") {
 
 						}
@@ -59,11 +60,11 @@ namespace tenochtitlan
 			vector<RouteParam> RestComponent::GetRouteParamTokens(string &str)
 			{
 				vector<RouteParam> params;
-				auto last_end = str.begin();
-				auto begin = str.begin();
-				auto end = str.begin();
-				while (end != str.end()) {
-					begin = str.find_first_of("{", 0);
+				int last_end = 0;
+				int begin = 0;
+				int end = 0;
+				while (end != string::npos) {
+					begin = str.find_first_of("{", end);
 					end = str.find_first_of("}", begin);
 					if (begin != last_end) {
 						RouteParam rp;
@@ -74,7 +75,7 @@ namespace tenochtitlan
 					string token = str.substr(begin + 1, end - 1);
 					string name = token;
 					string type = "string";
-					auto colon = token.find_first_of(':');
+					int colon = token.find_first_of(':');
 					if (colon != string::npos) {
 						name = token.substr(0, colon);
 						type = token.substr(colon + 1, token.size() - colon - 1);
@@ -105,13 +106,14 @@ namespace tenochtitlan
 			vector<string> RestComponent::Split(const string &str, const string &sep)
 			{
 				vector<string> result;
-				auto begin = str.find_first_not_of(sep);
-				auto end = str.find_first_of(sep, begin);
+				int begin = 0;
+				int end = 0;
 				result.push_back(str.substr(begin, end));
 				while (end != string::npos) {
 					begin = str.find_first_not_of(sep, end);
 					end = str.find_first_of(sep, begin);
-					result.push_back(str.substr(begin, end));
+					if (begin != string::npos)
+						result.push_back(str.substr(begin, end - begin));
 				}
 				return result;
 			}
