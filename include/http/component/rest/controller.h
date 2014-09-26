@@ -104,7 +104,7 @@ namespace tenochtitlan
 							if (begin != last_end) {
 								auto rp = std::make_shared<RouteParam>();
 								rp->is_separator = true;
-								rp->name = str.substr(last_end, begin);
+								rp->name = str.substr(last_end, begin - last_end);
 								params.push_back(rp);
 							}
 							last_end = end + 1;
