@@ -55,7 +55,9 @@
         'src/util/filereadercache.cpp',
         'src/http/component/rest/controller.cpp',
         'src/http/component/rest/contactcontroller.cpp',
-        'src/http/component/rest/homecontroller.cpp'
+        'src/http/component/rest/homecontroller.cpp',
+        'src/util/stringutils.cpp',
+        'include/http/component/rest/controller.h'
       ],
       'conditions': [
         [

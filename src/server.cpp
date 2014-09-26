@@ -10,6 +10,7 @@
 
 #include "http/httpserver.h"
 #include "management/applicationlifecyclelistener.h"
+#include "management/logger.h"
 
 using namespace std;
 using namespace tenochtitlan::http;
@@ -39,7 +40,10 @@ int main(int argc, char *argv[])
 		cout << e.what() << endl;
 	}
 
-	cout << "Executing http server on port " << PORT << endl;
+	auto logger = shared_ptr<Logger>(new Logger("Server"));
+	ostringstream oss;
+	oss << "Executing http server on port " << PORT;
+	logger->Info(__func__, oss.str());
 
 	cin.ignore(numeric_limits<streamsize>::max());
 	cin.get();

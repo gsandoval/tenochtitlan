@@ -1,5 +1,6 @@
 #include "socket/buffer.h"
 #include <cstdlib>
+#include <iostream>
 
 namespace tenochtitlan
 {

@@ -1,5 +1,6 @@
 #include "http/component/restcomponent.h"
 #include "http/component/rest/controller.h"
+#include "util/stringutils.h"
 #include <algorithm>
 
 namespace tenochtitlan
@@ -26,85 +27,59 @@ namespace tenochtitlan
 
 				string resource_path = req->ResourcePath();
 				logger->Debug(__func__, resource_path);
-				vector<string> path_tokens = Split(resource_path, "/");
+				vector<string> actual_path_tokens = util::StringUtils::Split(resource_path, "/");
 
 				bool is_a_match = true;
+				bool wrong_method = false;
 				map<string, shared_ptr<rest::BaseRoute>> routes = rest::Controller::Routes();
 				for (auto it = routes.begin(); it != routes.end(); ++it) {
-					vector<string> route_tokens = Split(it->first, "/");
+					shared_ptr<rest::BaseRoute> route = it->second;
 					
 					is_a_match = false;
-					if (route_tokens.size() == path_tokens.size()) {
+					if (route->route_tokens.size() == actual_path_tokens.size()) {
 						is_a_match = true;
-						for (unsigned int i = 0; i < route_tokens.size(); i++) {
-							string &token = path_tokens[i];
-							if (ContainsVariables(route_tokens[i])) {
-								vector<RouteParam> route_params = GetRouteParamTokens(route_tokens[i]);
-							}
-							else if (route_tokens[i] == token) {
+						for (unsigned int i = 0; i < route->route_tokens.size(); i++) {
+							string &actual_token = actual_path_tokens[i];
+							if (route->contains_variables[i]) {
+								vector<shared_ptr<rest::RouteParam>> route_params = route->route_params[i];
+								vector<string> token_variables = route->SeparateTokenVariables(actual_token, route_params);
+								for (int j = 0; j < token_variables.size(); j++) {
+									logger->Debug(__func__, token_variables[j]);
+								}
+								int current = 0;
+								for (unsigned int j = 0; j < route_params.size(); j++) {
 
-							}
-							else {
+								}
+							} else if (route->route_tokens[i] == actual_token) {
+								// NOOP
+							} else {
 								is_a_match = false;
 								break;
 							}
 						}
 					}
 
-					if (is_a_match) {
-						auto r = it->second;
+					auto r = it->second;
+					if (is_a_match && r->method == req->Method()) {
 						r->Execute(ctx);
+						wrong_method = false;
+
+						props->Set("t:IsHandled", true);
+						props->Set("t:HandledBy", "rest_resource_component");
+
+						res->SetCode(200);
+						res->SetCodeStr("OK");
+
 						break;
+					} else if (is_a_match) {
+						wrong_method = true;
 					}
 				}
 				if (!is_a_match) {
 					
+				} else if (wrong_method) {
+
 				}
-			}
-
-			bool RestComponent::ContainsVariables(string &str)
-			{
-				auto open = str.find_first_of('{');
-				return open != string::npos && str.find_first_of("}", open) != string::npos;
-			}
-
-			vector<RouteParam> RestComponent::GetRouteParamTokens(string &str)
-			{
-				vector<RouteParam> params;
-				int last_end = 0;
-				int begin = 0;
-				int end = 0;
-				while (end != string::npos) {
-					begin = str.find_first_of("{", end);
-					end = str.find_first_of("}", begin);
-					if (begin != last_end) {
-						RouteParam rp;
-						rp.is_separator = true;
-						rp.name = str.substr(last_end, begin);
-					}
-					last_end = end + 1;
-					string token = str.substr(begin + 1, end - 1);
-					string name = token;
-					string type = "string";
-					int colon = token.find_first_of(':');
-					if (colon != string::npos) {
-						name = token.substr(0, colon);
-						type = token.substr(colon + 1, token.size() - colon - 1);
-					}
-					RouteParam param;
-					param.is_separator = false;
-					param.name = name;
-					if (type == "string") param.type = ParamType::String;
-					else if (type == "double") param.type = ParamType::Double;
-					else if (type == "float") param.type = ParamType::Float;
-					else if (type == "bool") param.type = ParamType::Bool;
-					else if (type == "int") param.type = ParamType::Int;
-					else if (type == "regex") param.type = ParamType::Regex;
-
-					params.push_back(param);
-				}
-
-				return params;
 			}
 
 			void RestComponent::AddController(shared_ptr<rest::Controller> ctrl)
@@ -112,20 +87,6 @@ namespace tenochtitlan
 				unique_lock<mutex> lk(controllers_mutex);
 				controller_list.push_back(ctrl);
 				lk.unlock();
-			}
-
-			vector<string> RestComponent::Split(const string &str, const string &sep)
-			{
-				vector<string> result;
-				int begin = 0;
-				int end = 0;
-				while (end != string::npos) {
-					begin = str.find_first_not_of(sep, end);
-					end = str.find_first_of(sep, begin);
-					if (begin != string::npos)
-						result.push_back(str.substr(begin, end - begin));
-				}
-				return result;
 			}
 		}
 	}

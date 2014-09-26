@@ -13,7 +13,13 @@ namespace tenochtitlan
 				HomeController::HomeController()
 				{
 					Get<string>("/home", {}, [&]() -> string {
-						return "";
+						return "{'key': 'value'}";
+					});
+					Get<string>("/phone/{type}", {}, [&]() -> string {
+						return "{'key': 'value'}";
+					});
+					Get<string>("/address/{type}-{format}", {}, [&]() -> string {
+						return "{'key': 'value'}";
 					});
 				}
 			}

@@ -1,5 +1,7 @@
 #include "http/httpentity.h"
+#include "management/logger.h"
 #include <sstream>
+#include <iostream>
 
 namespace tenochtitlan
 {
@@ -92,6 +94,7 @@ namespace tenochtitlan
 			this->content = content->Buffer();
 			ostringstream oss;
 			oss << content->Buffer()->Size();
+
 			AddHeader("Content-Type", content->Mime());
 			AddHeader("Content-Length", oss.str());
 		}
