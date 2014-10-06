@@ -88,6 +88,7 @@ namespace tenochtitlan
 #endif
 
 			ostringstream oss;
+			Write(oss, msg.c_str());
 			oss << mbstr << " [INFO] " << this_thread::get_id() << " [" << class_name << "::" << mtd << "] " << msg;
 
 			unique_lock<mutex> lk(messages_mutex);
@@ -137,6 +138,11 @@ namespace tenochtitlan
 			lk.unlock();
 
 			messages_cond.notify_all();
+		}
+
+		void Logger::Write(ostringstream &oss, const char* format)
+		{
+			oss << format;
 		}
 
 		void Logger::Start()

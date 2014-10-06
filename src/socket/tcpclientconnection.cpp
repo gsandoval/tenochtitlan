@@ -106,14 +106,12 @@ namespace tenochtitlan
 
 		void TcpClientConnection::DoClose()
 		{
-			logger->Debug(__func__, "DoClose");
 			client->data = this;
 			uv_close((uv_handle_t*)client, close_cb);
 		}
 
 		void TcpClientConnection::DoShutdown()
 		{
-			logger->Debug(__func__, "DoShutdown");
 			uv_shutdown_t *req = new uv_shutdown_t();
 			req->data = this;
 			uv_shutdown(req, (uv_stream_s*)client, shutdown_cb);
@@ -131,7 +129,6 @@ namespace tenochtitlan
 
 		void TcpClientConnection::Close()
 		{
-			logger->Debug(__func__, "Close");
 			unique_lock<mutex> lk(closed_mutex);
 			if (!closed) {
 				closed = true;
