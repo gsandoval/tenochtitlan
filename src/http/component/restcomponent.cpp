@@ -43,12 +43,49 @@ namespace tenochtitlan
 							if (route->contains_variables[i]) {
 								vector<shared_ptr<rest::RouteParam>> route_params = route->route_params[i];
 								vector<string> token_variables = route->SeparateTokenVariables(actual_token, route_params);
-								for (int j = 0; j < token_variables.size(); j++) {
-									logger->Debug(__func__, token_variables[j]);
-								}
 								int current = 0;
+								auto props = make_shared<util::Properties>();
 								for (unsigned int j = 0; j < route_params.size(); j++) {
+									if (route_params[j]->is_separator) {
+										continue;
+									}
+									if (token_variables.size() <= current) {
+										is_a_match = false;
+										break;
+									}
 
+									is_a_match = false;
+									if (route_params[j]->type == rest::ParamType::Regex) {
+										if (is_a_match = util::StringUtils::IsRegex(token_variables[current])) {
+											regex r = util::StringUtils::ToRegex(token_variables[current]);
+										}
+									} else if (route_params[j]->type == rest::ParamType::Int) {
+										if (is_a_match = util::StringUtils::IsInt(token_variables[current])) {
+											int r = util::StringUtils::ToInt(token_variables[current]);
+											props->Set(route_params[j]->name, r);
+										}
+									} else if (route_params[j]->type == rest::ParamType::Double) {
+										if (is_a_match = util::StringUtils::IsDouble(token_variables[current])) {
+											double r = util::StringUtils::ToDouble(token_variables[current]);
+											props->Set(route_params[j]->name, r);
+										}
+									} else if (route_params[j]->type == rest::ParamType::String) {
+										is_a_match = true;
+										string r = token_variables[current];
+										props->Set(route_params[j]->name, r);
+									} else if (route_params[j]->type == rest::ParamType::Bool) {
+										if (is_a_match = util::StringUtils::IsBool(token_variables[current])) {
+											bool r = util::StringUtils::ToBool(token_variables[current]);
+											props->Set(route_params[j]->name, r);
+										}
+									}
+
+									current++;
+
+									if (!is_a_match) break;
+								}
+								if (is_a_match) {
+									
 								}
 							} else if (route->route_tokens[i] == actual_token) {
 								// NOOP
@@ -56,6 +93,8 @@ namespace tenochtitlan
 								is_a_match = false;
 								break;
 							}
+
+							if (!is_a_match) break;
 						}
 					}
 

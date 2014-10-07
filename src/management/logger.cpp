@@ -69,64 +69,10 @@ namespace tenochtitlan
 			oss << mbstr << " [" << level << "] " << this_thread::get_id() << " [" << class_name << "::" << mtd << "] ";
 		}
 
-		void Logger::Debug(string mtd, string msg)
+		void Logger::QueueMessage(const string &msg)
 		{
-			chrono::system_clock::time_point now = chrono::system_clock::now();
-			time_t tt = chrono::system_clock::to_time_t(now);
-			char mbstr[100];
-#ifdef _MSC_VER
-		    strftime(mbstr, sizeof(mbstr), "%y-%m-%d %H:%M:%S", localtime(&tt));
-#else
-			strftime(mbstr, sizeof(mbstr), "%F %T", localtime(&tt));
-#endif
-
-			ostringstream oss;
-			oss << mbstr << " [DEBUG] " << this_thread::get_id() << " [" << class_name << "::" << mtd << "] " << msg;
-
 			unique_lock<mutex> lk(messages_mutex);
-			messages.push(oss.str());
-			lk.unlock();
-
-			messages_cond.notify_all();
-		}
-
-		void Logger::Warn(string mtd, string msg)
-		{
-			chrono::system_clock::time_point now = chrono::system_clock::now();
-			time_t tt = chrono::system_clock::to_time_t(now);
-			char mbstr[100];
-#ifdef _MSC_VER
-			strftime(mbstr, sizeof(mbstr), "%y-%m-%d %H:%M:%S", localtime(&tt));
-#else
-			strftime(mbstr, sizeof(mbstr), "%F %T", localtime(&tt));
-#endif
-
-			ostringstream oss;
-			oss << mbstr << " [WARN] " << this_thread::get_id() << " [" << class_name << "::" << mtd << "] " << msg;
-
-			unique_lock<mutex> lk(messages_mutex);
-			messages.push(oss.str());
-			lk.unlock();
-
-			messages_cond.notify_all();
-		}
-
-		void Logger::Error(string mtd, string msg)
-		{
-			chrono::system_clock::time_point now = chrono::system_clock::now();
-			time_t tt = chrono::system_clock::to_time_t(now);
-			char mbstr[100];
-#ifdef _MSC_VER
-			strftime(mbstr, sizeof(mbstr), "%y-%m-%d %H:%M:%S", localtime(&tt));
-#else
-			strftime(mbstr, sizeof(mbstr), "%F %T", localtime(&tt));
-#endif
-
-			ostringstream oss;
-			oss << mbstr << " [ERROR] " << this_thread::get_id() << " [" << class_name << "::" << mtd << "] " << msg;
-
-			unique_lock<mutex> lk(messages_mutex);
-			messages.push(oss.str());
+			messages.push(msg);
 			lk.unlock();
 
 			messages_cond.notify_all();

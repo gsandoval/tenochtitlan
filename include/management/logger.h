@@ -53,25 +53,36 @@ namespace tenochtitlan
 			}
 
 			void LogHeader(std::ostringstream &oss, std::string level, std::string &mtd);
+			void QueueMessage(const std::string &msg);
 
 			friend void logger_ctrl_c_handler(int);
 		public:
 			Logger(std::string class_name);
 			~Logger();
 
-			void Debug(std::string mtd, std::string msg);
+			void Debug(std::string mtd, std::string msg)
+			{
+				std::ostringstream oss;
+				LogHeader(oss, "DEBUG", mtd);
+				Write(oss, msg.c_str());
+				QueueMessage(oss.str());
+			}
+
+			template<typename T, typename... Ts>
+			void Debug(std::string mtd, std::string msg, T value, Ts... Fargs)
+			{
+				std::ostringstream oss;
+				LogHeader(oss, "DEBUG", mtd, value, Fargs...);
+				Write(oss, msg.c_str());
+				QueueMessage(oss.str());
+			}
 
 			void Info(std::string mtd, std::string msg)
 			{
 				std::ostringstream oss;
 				LogHeader(oss, "INFO", mtd);
 				Write(oss, msg.c_str());
-
-				std::unique_lock<std::mutex> lk(messages_mutex);
-				messages.push(oss.str());
-				lk.unlock();
-
-				messages_cond.notify_all();
+				QueueMessage(oss.str());
 			}
 
 			template<typename T, typename... Ts>
@@ -80,16 +91,42 @@ namespace tenochtitlan
 				std::ostringstream oss;
 				LogHeader(oss, "INFO", mtd);
 				Write(oss, msg.c_str(), value, Fargs...);
-
-				std::unique_lock<std::mutex> lk(messages_mutex);
-				messages.push(oss.str());
-				lk.unlock();
-
-				messages_cond.notify_all();
+				QueueMessage(oss.str());
 			}
 
-			void Warn(std::string mtd, std::string msg);
-			void Error(std::string mtd, std::string msg);
+			void Warn(std::string mtd, std::string msg)
+			{
+				std::ostringstream oss;
+				LogHeader(oss, "WARN", mtd);
+				Write(oss, msg.c_str());
+				QueueMessage(oss.str());
+			}
+
+			template<typename T, typename... Ts>
+			void Warn(std::string mtd, std::string msg, T value, Ts... Fargs)
+			{
+				std::ostringstream oss;
+				LogHeader(oss, "WARN", mtd);
+				Write(oss, msg.c_str(), value, Fargs...);
+				QueueMessage(oss.str());
+			}
+
+			void Error(std::string mtd, std::string msg)
+			{
+				std::ostringstream oss;
+				LogHeader(oss, "ERROR", mtd);
+				Write(oss, msg.c_str());
+				QueueMessage(oss.str());
+			}
+
+			template<typename T, typename... Ts>
+			void Error(std::string mtd, std::string msg, T value, Ts... Fargs)
+			{
+				std::ostringstream oss;
+				LogHeader(oss, "ERROR", mtd);
+				Write(oss, msg.c_str(), value, Fargs...);
+				QueueMessage(oss.str());
+			}
 		};
 	}
 }
