@@ -55,6 +55,20 @@ namespace tenochtitlan
 		{
 		}
 
+		void Logger::LogHeader(ostringstream &oss, string level, string &mtd)
+		{
+			chrono::system_clock::time_point now = chrono::system_clock::now();
+			time_t tt = chrono::system_clock::to_time_t(now);
+			char mbstr[100];
+#ifdef _MSC_VER
+			strftime(mbstr, sizeof(mbstr), "%y-%m-%d %H:%M:%S", localtime(&tt));
+#else
+			strftime(mbstr, sizeof(mbstr), "%F %T", localtime(&tt));
+#endif
+
+			oss << mbstr << " [" << level << "] " << this_thread::get_id() << " [" << class_name << "::" << mtd << "] ";
+		}
+
 		void Logger::Debug(string mtd, string msg)
 		{
 			chrono::system_clock::time_point now = chrono::system_clock::now();
@@ -68,28 +82,6 @@ namespace tenochtitlan
 
 			ostringstream oss;
 			oss << mbstr << " [DEBUG] " << this_thread::get_id() << " [" << class_name << "::" << mtd << "] " << msg;
-
-			unique_lock<mutex> lk(messages_mutex);
-			messages.push(oss.str());
-			lk.unlock();
-
-			messages_cond.notify_all();
-		}
-
-		void Logger::Info(string mtd, string msg)
-		{
-			chrono::system_clock::time_point now = chrono::system_clock::now();
-			time_t tt = chrono::system_clock::to_time_t(now);
-			char mbstr[100];
-#ifdef _MSC_VER
-			strftime(mbstr, sizeof(mbstr), "%y-%m-%d %H:%M:%S", localtime(&tt));
-#else
-			strftime(mbstr, sizeof(mbstr), "%F %T", localtime(&tt));
-#endif
-
-			ostringstream oss;
-			Write(oss, msg.c_str());
-			oss << mbstr << " [INFO] " << this_thread::get_id() << " [" << class_name << "::" << mtd << "] " << msg;
 
 			unique_lock<mutex> lk(messages_mutex);
 			messages.push(oss.str());

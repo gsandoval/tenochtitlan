@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 	}
 
 	auto logger = shared_ptr<Logger>(new Logger("Server"));
-	logger->LogInfo("Executing http server on port \@", PORT);
+	logger->LogInfo("Executing http server on port @", PORT);
 
 	cin.ignore(numeric_limits<streamsize>::max());
 	cin.get();

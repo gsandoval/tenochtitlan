@@ -43,36 +43,16 @@ namespace tenochtitlan
 			void Write(std::ostringstream &oss, const char* format, T value, Ts... Fargs)
 			{
 				for ( ; *format != '\0'; format++) {
-			        if ( *format == '\@' ) {
+			        if ( *format == '@' ) {
 			           oss << value;
-			           Write(format + 1, Fargs...);
+			           Write(oss, format + 1, Fargs...);
 			           return;
 			        }
 			        oss << *format;
 			    }
 			}
 
-			void LogHeader(std::ostringstream oss, std::string level, std::string mtd, std::string msg)
-			{
-				std::chrono::system_clock::time_point now = chrono::system_clock::now();
-				time_t tt = chrono::system_clock::to_time_t(now);
-				char mbstr[100];
-#ifdef _MSC_VER
-				strftime(mbstr, sizeof(mbstr), "%y-%m-%d %H:%M:%S", localtime(&tt));
-#else
-				strftime(mbstr, sizeof(mbstr), "%F %T", localtime(&tt));
-#endif
-
-				std::ostringstream oss;
-				oss << mbstr << " [" << level << "] " << this_thread::get_id() << " [" << class_name << "::" << mtd << "] " << msg;
-				Write(oss, msg.c_str());
-
-				std::unique_lock<mutex> lk(messages_mutex);
-				messages.push(oss.str());
-				lk.unlock();
-
-				messages_cond.notify_all();
-			}
+			void LogHeader(std::ostringstream &oss, std::string level, std::string &mtd);
 
 			friend void logger_ctrl_c_handler(int);
 		public:
@@ -80,33 +60,34 @@ namespace tenochtitlan
 			~Logger();
 
 			void Debug(std::string mtd, std::string msg);
+
 			void Info(std::string mtd, std::string msg)
 			{
-
-			}
-
-			template<typename T, typename... Ts>
-			void Info(std::string mtd, std::string msg, T value, Ts... Fargs)
-			{
-				chrono::system_clock::time_point now = chrono::system_clock::now();
-				time_t tt = chrono::system_clock::to_time_t(now);
-				char mbstr[100];
-#ifdef _MSC_VER
-				strftime(mbstr, sizeof(mbstr), "%y-%m-%d %H:%M:%S", localtime(&tt));
-#else
-				strftime(mbstr, sizeof(mbstr), "%F %T", localtime(&tt));
-#endif
-
-				ostringstream oss;
+				std::ostringstream oss;
+				LogHeader(oss, "INFO", mtd);
 				Write(oss, msg.c_str());
-				oss << mbstr << " [INFO] " << this_thread::get_id() << " [" << class_name << "::" << mtd << "] " << msg;
 
-				unique_lock<mutex> lk(messages_mutex);
+				std::unique_lock<std::mutex> lk(messages_mutex);
 				messages.push(oss.str());
 				lk.unlock();
 
 				messages_cond.notify_all();
 			}
+
+			template<typename T, typename... Ts>
+			void Info(std::string mtd, std::string msg, T value, Ts... Fargs)
+			{
+				std::ostringstream oss;
+				LogHeader(oss, "INFO", mtd);
+				Write(oss, msg.c_str(), value, Fargs...);
+
+				std::unique_lock<std::mutex> lk(messages_mutex);
+				messages.push(oss.str());
+				lk.unlock();
+
+				messages_cond.notify_all();
+			}
+
 			void Warn(std::string mtd, std::string msg);
 			void Error(std::string mtd, std::string msg);
 		};

@@ -69,21 +69,17 @@ namespace tenochtitlan
 
 					std::vector<std::string> SeparateTokenVariables(std::string &str, std::vector<std::shared_ptr<rest::RouteParam>> params)
 					{
-						auto logger = std::shared_ptr<management::Logger>(new management::Logger("BaseRoute"));
 						int begin = 0;
 						int end = 0;
 						std::vector<std::string> tv;
 						for (unsigned int i = 0; i < params.size(); i++) {
 							if (params[i]->is_separator) {
-								logger->Debug(__func__, "new");
-								logger->Debug(__func__, params[i]->name);
+								//logger->Debug(__func__, params[i]->name);
 								end = str.find_first_of(params[i]->name, begin);
 								if (end == std::string::npos) {
-									logger->Debug(__func__, "breaking");
 									break;
 								}
 								if (begin != end) {
-									logger->Debug(__func__, "found");
 									tv.push_back(str.substr(begin, end - begin));
 								}
 								begin = end + params[i]->name.size();
@@ -103,9 +99,6 @@ namespace tenochtitlan
 
 					std::vector<std::shared_ptr<RouteParam>> GetRouteParamTokens(std::string &str)
 					{
-						auto logger = std::shared_ptr<management::Logger>(new management::Logger("BaseRoute"));
-						std::ostringstream oss;
-
 						std::vector<std::shared_ptr<RouteParam>> params;
 						int last_end = 0;
 						int begin = 0;
@@ -117,10 +110,6 @@ namespace tenochtitlan
 								auto rp = std::make_shared<RouteParam>();
 								rp->is_separator = true;
 								rp->name = str.substr(last_end, begin - last_end);
-
-								oss = std::ostringstream();
-								oss << "separator " << rp->name;
-								logger->Debug(__func__, oss.str());
 								params.push_back(rp);
 							}
 							if (begin == std::string::npos) {
@@ -138,10 +127,6 @@ namespace tenochtitlan
 							auto param = std::make_shared<RouteParam>();
 							param->is_separator = false;
 							param->name = name;
-
-							oss = std::ostringstream();
-							oss << "token " << param->name;
-							logger->Debug(__func__, oss.str());
 							if (type == "string") param->type = ParamType::String;
 							else if (type == "double") param->type = ParamType::Double;
 							else if (type == "bool") param->type = ParamType::Bool;
@@ -170,7 +155,6 @@ namespace tenochtitlan
 						std::string test;
 						static std::string type_name_string = typeid(test).name();
 
-						//auto logger = std::shared_ptr<management::Logger>(new management::Logger("Route"));
 						T result = f();
 
 						if (typeid(T).name() == type_name_string) {
