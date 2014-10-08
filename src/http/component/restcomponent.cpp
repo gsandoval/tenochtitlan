@@ -37,6 +37,8 @@ namespace tenochtitlan
 					
 					is_a_match = false;
 					if (route->route_tokens.size() == actual_path_tokens.size()) {
+						auto route_parameters = make_shared<util::Properties>();
+
 						is_a_match = true;
 						for (unsigned int i = 0; i < route->route_tokens.size(); i++) {
 							string &actual_token = actual_path_tokens[i];
@@ -58,6 +60,7 @@ namespace tenochtitlan
 									if (route_params[j]->type == rest::ParamType::Regex) {
 										if (is_a_match = util::StringUtils::IsRegex(token_variables[current])) {
 											regex r = util::StringUtils::ToRegex(token_variables[current]);
+											//props->Set(route_params[j]->name, r);
 										}
 									} else if (route_params[j]->type == rest::ParamType::Int) {
 										if (is_a_match = util::StringUtils::IsInt(token_variables[current])) {
@@ -85,7 +88,7 @@ namespace tenochtitlan
 									if (!is_a_match) break;
 								}
 								if (is_a_match) {
-									
+									route_parameters->AddAll(props);
 								}
 							} else if (route->route_tokens[i] == actual_token) {
 								// NOOP
